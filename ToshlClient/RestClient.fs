@@ -118,6 +118,7 @@ let init() =
     client.Proxy.Credentials <- NetworkCredential("eul0856","Dony2206!")
 
 let excecuteRequest (request : IRestRequest) = 
+    init()
     let response =
         request 
         |> addAuthorization
@@ -131,7 +132,11 @@ let getTags() =
         getRequest "/tags" Method.GET
         |> excecuteRequest 
         |> Option.map (fun x -> JsonConvert.DeserializeObject<Tag list>(x))
-    
+
+let GetTags() = 
+    match getTags() with
+    | Some x -> x
+    | None -> []    
 
 let getCategories() = 
     getRequest "/categories" Method.GET

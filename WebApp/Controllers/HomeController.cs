@@ -6,11 +6,22 @@ using System.Web.Mvc;
 
 namespace WebApp.Controllers
 {
+    public class HomeVM
+    {
+        public List<Parser.ReportVm> Reports;
+        public List<SelectListItem> Tags;
+    }
     public class HomeController : Controller
     {
         public ActionResult Index()
         {
-            return View(new List<Parser.ReportVm>(Parser.Movimenti()));
+            var homeVM = new HomeVM();
+            homeVM.Reports = new List<Parser.ReportVm>(Parser.Movimenti());
+            var Tags = new List<ToshClient.Tag>(ToshClient.GetTags());
+            List<SelectListItem> tagsVm;
+            homeVM.Tags = Tags.Where(x => !x.deleted).Select(tag => new SelectListItem() {Text = tag.name, Value = tag.id}).ToList();
+
+            return View(homeVM);
         }
 
         public ActionResult About()

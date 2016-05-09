@@ -1,15 +1,22 @@
 ﻿@{
     ViewBag.Title = "Home Page";
 }
-@model List<Parser.ReportVm>
+@model WebApp.Controllers.HomeVM
+
+
 
 <div class="row">
     <table>
-        
-    @foreach (var m in Model)
-    {
         <tr>
-            
+            <td>@Html.DropDownList("Tags",Model.Tags)</td>
+        </tr>
+    </table>
+    <table>
+
+        @foreach (var m in Model.Reports)
+        {
+            <tr>
+
                 @if (m.Type.IsExpence)
                 {
                     <td>Expence</td>
@@ -19,11 +26,11 @@
                     <td>Income</td>
 
                 }
-            <td>@m.Ammount</td>
-            <td>@m.Date.ToShortDateString()</td>
-            <td>@m.Causale</td>
-            <td>@m.Description</td>
-        </tr>
-    }
+                <td>@m.Ammount</td>
+                <td>@m.Date.ToShortDateString()</td>
+                <td>@m.Causale</td>
+                <td>@m.Description</td>
+            </tr>
+        }
     </table>
 </div>
