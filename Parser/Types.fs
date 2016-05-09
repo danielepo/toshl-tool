@@ -2,6 +2,7 @@
 open FSharp.Data
 open System
 
+type Ignored = CsvProvider<"MappingRules.csv",";">
 type EstrattoConto = CsvProvider<"ListaMovimenti.csv",";">
 type Record = {
     Date: DateTime;
