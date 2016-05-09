@@ -1,0 +1,29 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@model List<Parser.ReportVm>
+
+<div class="row">
+    <table>
+        
+    @foreach (var m in Model)
+    {
+        <tr>
+            
+                @if (m.Type.IsExpence)
+                {
+                    <td>Expence</td>
+                }
+                else
+                {
+                    <td>Income</td>
+
+                }
+            <td>@m.Ammount</td>
+            <td>@m.Date.ToShortDateString()</td>
+            <td>@m.Causale</td>
+            <td>@m.Description</td>
+        </tr>
+    }
+    </table>
+</div>
