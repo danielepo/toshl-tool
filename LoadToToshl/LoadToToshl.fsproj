@@ -57,6 +57,11 @@
       <Project>{a413fcd7-89bb-49db-bf45-e9bfd55c64bd}</Project>
       <Private>True</Private>
     </ProjectReference>
+    <ProjectReference Include="..\ToshlClient\ToshlClient.fsproj">
+      <Name>ToshlClient</Name>
+      <Project>{2c3346d4-498e-4b83-b9f3-5986d91d9757}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
