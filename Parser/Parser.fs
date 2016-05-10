@@ -25,7 +25,7 @@ let loadMovimenti path=
             if Seq.isEmpty rulesThatBegins then 0 else Int32.Parse((Seq.head rulesThatBegins).TagId)
 
         {
-            Date = DateTime.Parse(x.DATA);
+            Date = x.DATA;
             Ammount = y; 
             Causale =(if x.``CAUSALE ABI``.HasValue then x.``CAUSALE ABI``.Value else 0); 
             Description = x.``DESCRIZIONE OPERAZIONE``;

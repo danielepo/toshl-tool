@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Microsoft.FSharp.Collections;
+using Microsoft.FSharp.Core;
 
 namespace WebApp.Controllers
 {
@@ -11,6 +13,7 @@ namespace WebApp.Controllers
         public List<Parser.ReportVm> Reports;
         public List<SelectListItem> Tags;
         public List<SelectListItem> Rules;
+        public List<SelectListItem> Accounts;
     }
     public class HomeController : Controller
     {
@@ -28,6 +31,8 @@ namespace WebApp.Controllers
                new SelectListItem() {Text = "Ignore", Value = ((int) Parser.RuleType.Ignore).ToString() },
                new SelectListItem() {Text = "Tag", Value = ((int)Parser.RuleType.Tagged).ToString() }
             };
+            var Accounts = new List<ToshClient.Account>(ToshClient.GetAccounts());
+            homeVM.Accounts = Accounts.Select(x => new SelectListItem() {Text = x.name, Value = x.id.ToString()}).ToList();
             return homeVM;
         }
         public ActionResult Index()
@@ -48,6 +53,13 @@ namespace WebApp.Controllers
                     break;
             }
             return View(BuildVMM());
+
+        }
+        [HttpPost]
+        public ActionResult Save(string account)
+        {
+            ToshClient.SaveRecords(account, path);
+            return View();
 
         }
         public ActionResult About()

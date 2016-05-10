@@ -13,15 +13,16 @@
 </script>
 
 <div class="row">
-    <form method="post">
-
+    @using (Html.BeginForm("Index","Home",FormMethod.Post))
+    {
         <div class="row">
-            <div class="col-md-1">@Html.DropDownList("tag", Model.Tags)</div>
+            <div class="col-md-2">@Html.DropDownList("tag", Model.Tags)</div>
             <div class="col-md-1">@Html.DropDownList("rule", Model.Rules)</div>
-            <div class="col-md-9"><input type="text" id="start" name="start" style="max-width: 1000px;width:100%" /></div>
+            <div class="col-md-8"><input type="text" id="start" name="start" style="max-width: 1000px;width:100%" /></div>
             <div class="col-md-1"><input type="submit" value="send" /></div>
         </div>
-    </form>
+    }
+    
     <table>
         <caption>Not Tagged</caption>
 
@@ -45,39 +46,46 @@
         }
     </table>
     <p>Already Tagged</p>
-        @{
-            var reports = Model.Reports
-                .Where(x => x.Tagged)
-                .GroupBy(x => x.Type)
-                .Select(x => new { Type = x.Key, G = x.GroupBy(y => y.Tag) });
+    @{
+        var reports = Model.Reports
+            .Where(x => x.Tagged)
+            .GroupBy(x => x.Type)
+            .Select(x => new { Type = x.Key, G = x.GroupBy(y => y.Tag) });
 
-        }
-        @foreach (var m in reports)
-        {
-            <ul>
+    }
+    @foreach (var m in reports)
+    {
+        <ul>
 
-                @if (m.Type.IsExpence)
-                {
-                    <li>Expence</li>
-                }
-                else
-                {
-                    <li>Income</li>
-                }
-                <li>
+            @if (m.Type.IsExpence)
+            {
+                <li>Expence</li>
+            }
+            else
+            {
+                <li>Income</li>
+            }
+            <li>
 
-                    <ul>
+                <ul>
 
-                        @foreach (var g in m.G)
-                        {
-                            <li>
-                                @Model.Tags.First(x => x.Value == g.Key.ToString()).Text
-                                @g.Sum(x => x.Ammount)
-                            </li>
-                        }
-                    </ul>
-                </li>
+                    @foreach (var g in m.G)
+                    {
+                        <li>
+                            @Model.Tags.First(x => x.Value == g.Key.ToString()).Text
+                            @g.Sum(x => x.Ammount)
+                        </li>
+                    }
+                </ul>
+            </li>
 
-            </ul>
-        }
+        </ul>
+    }
+    @using (Html.BeginForm("Save","Home",FormMethod.Post))
+    {
+        <div class="row">
+            <div class="col-md-1">@Html.DropDownList("account", Model.Accounts)</div>
+            <div class="col-md-1"><input type="submit" value="Salva Movimenti" /></div>
+        </div>
+    }
 </div>
