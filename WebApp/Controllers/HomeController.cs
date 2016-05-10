@@ -10,20 +10,46 @@ namespace WebApp.Controllers
     {
         public List<Parser.ReportVm> Reports;
         public List<SelectListItem> Tags;
+        public List<SelectListItem> Rules;
     }
     public class HomeController : Controller
     {
-        public ActionResult Index()
+            string path = System.Web.HttpContext.Current.Request.PhysicalApplicationPath;
+        private HomeVM BuildVMM()
         {
+
             var homeVM = new HomeVM();
-            homeVM.Reports = new List<Parser.ReportVm>(Parser.Movimenti());
+            homeVM.Reports = new List<Parser.ReportVm>(Parser.Movimenti(path));
             var Tags = new List<ToshClient.Tag>(ToshClient.GetTags());
             List<SelectListItem> tagsVm;
-            homeVM.Tags = Tags.Where(x => !x.deleted).Select(tag => new SelectListItem() {Text = tag.name, Value = tag.id}).ToList();
-
-            return View(homeVM);
+            homeVM.Tags = Tags.Where(x => !x.deleted).Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id }).ToList();
+            homeVM.Rules = new List<SelectListItem>()
+            {
+               new SelectListItem() {Text = "Ignore", Value = ((int) Parser.RuleType.Ignore).ToString() },
+               new SelectListItem() {Text = "Tag", Value = ((int)Parser.RuleType.Tagged).ToString() }
+            };
+            return homeVM;
         }
+        public ActionResult Index()
+        {
+            
+            return View(BuildVMM());
+        }
+        [HttpPost]
+        public ActionResult Index(string start,string tag,string rule)
+        {
+            switch (rule)
+            {
+                case "1":
+                    Parser.addRule(tag, start, path);
+                    break;
+                case "0":
+                    Parser.addIgnore(start, path);
+                    break;
+            }
+            return View(BuildVMM());
 
+        }
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";

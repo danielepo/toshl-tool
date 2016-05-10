@@ -2,9 +2,11 @@
 
 open System
 open Types
+open System.Globalization
 
-let loadMovimenti ()=
-
+let loadMovimenti path=
+    let it = CultureInfo.CreateSpecificCulture("it-IT")
+    Threading.Thread.CurrentThread.CurrentCulture <- it
     let movimentiCsv = EstrattoConto.Load("ListaMovimenti.csv")
     let record (x:EstrattoConto.Row) y= {
         Date = DateTime.Parse(x.DATA);
@@ -19,8 +21,8 @@ let loadMovimenti ()=
     let isExpence (x:EstrattoConto.Row) =
         not <| Double.IsNaN x.DARE
     let ignored = 
-        Ignored.Load("MappingRules.csv") 
-        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "ignored" ))
+        Ignored.Load(path + "MappingRules.csv") 
+        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "ignore" ))
 
     let movimenti = 
         let isIgnored (s:string) = ignored |> Seq.fold (fun acc x -> acc || s.StartsWith x.Starts) false
@@ -44,22 +46,26 @@ type CatType =
 type ReportVm =
     {Ammount : double; Date: DateTime; Description: string; Causale: int; Type: CatType}
 
-let Movimenti ()=
+let Movimenti (path)=
     let toVm (y:Record) t = { Ammount = y.Ammount; Date = y.Date; Description = y.Description; Causale = y.Causale; Type = t  } 
-    loadMovimenti()
+    loadMovimenti path
     |> Seq.map (fun x -> 
         match x with
         | Movement.Expence y -> toVm y CatType.Expence
         | Movement.Income y ->  toVm y CatType.Income)
 
-let addGenericRule rule tagId startString =
-    let ruleFile = "MappingRules.csv"
+
+type RuleType = 
+    | Ignore = 0
+    | Tagged = 1
+let addGenericRule rule tagId startString path=
+    let ruleFile = path + "MappingRules.csv"
     let newRow = [Ignored.Row(rule,tagId,startString)]
     let newRules = Ignored.Load(ruleFile).Append newRow
     System.IO.File.WriteAllText (ruleFile, newRules.SaveToString(';'))
 
-let addIgnore startString=
-    addGenericRule "ignore" "" startString
+let addIgnore startString path=
+    addGenericRule "ignore" "" startString path
 
-let addRule tagId startString=
-    addGenericRule "tag" tagId startString
+let addRule tagId startString path=
+    addGenericRule "tag" tagId startString path

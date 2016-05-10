@@ -3,19 +3,32 @@
 }
 @model WebApp.Controllers.HomeVM
 
+<script type="text/javascript">
+    $(document).ready(function () {
 
+    });
+    function selectRow(elm) {
+        $("#start").val($(elm).text());
+    }
+</script>
 
 <div class="row">
+    <form method="post">
+
     <table>
         <tr>
-            <td>@Html.DropDownList("Tags",Model.Tags)</td>
+            <td>@Html.DropDownList("tag", Model.Tags)</td>
+            <td>@Html.DropDownList("rule", Model.Rules)</td>
+            <td>@Html.Editor("start")</td>
+            <td><input type="submit" value="send" /></td>
         </tr>
     </table>
+    </form>
     <table>
 
         @foreach (var m in Model.Reports)
         {
-            <tr>
+            <tr >
 
                 @if (m.Type.IsExpence)
                 {
@@ -29,7 +42,7 @@
                 <td>@m.Ammount</td>
                 <td>@m.Date.ToShortDateString()</td>
                 <td>@m.Causale</td>
-                <td>@m.Description</td>
+                <td onclick="selectRow(this)">@m.Description</td>
             </tr>
         }
     </table>
