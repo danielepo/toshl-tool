@@ -5,7 +5,7 @@ open System
 open ToshClient
 [<EntryPoint>]
 let main argv = 
-    let movimenti = loadMovimenti() 
+    let movimenti = loadMovimenti "\\"
     for m in movimenti do 
         match m with 
         | Types.Movement.Expence x -> printf "Ex %s" x.Description

@@ -9,6 +9,7 @@ type Record = {
     Ammount: float;
     Causale: int;
     Description: string;
+    Tag: int;
 }
 
 type Movement = 

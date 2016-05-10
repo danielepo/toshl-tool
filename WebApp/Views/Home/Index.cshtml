@@ -15,20 +15,19 @@
 <div class="row">
     <form method="post">
 
-    <table>
-        <tr>
-            <td>@Html.DropDownList("tag", Model.Tags)</td>
-            <td>@Html.DropDownList("rule", Model.Rules)</td>
-            <td>@Html.Editor("start")</td>
-            <td><input type="submit" value="send" /></td>
-        </tr>
-    </table>
+        <div class="row">
+            <div class="col-md-1">@Html.DropDownList("tag", Model.Tags)</div>
+            <div class="col-md-1">@Html.DropDownList("rule", Model.Rules)</div>
+            <div class="col-md-9"><input type="text" id="start" name="start" style="max-width: 1000px;width:100%" /></div>
+            <div class="col-md-1"><input type="submit" value="send" /></div>
+        </div>
     </form>
     <table>
+        <caption>Not Tagged</caption>
 
-        @foreach (var m in Model.Reports)
+        @foreach (var m in Model.Reports.Where(x => !x.Tagged))
         {
-            <tr >
+            <tr>
 
                 @if (m.Type.IsExpence)
                 {
@@ -37,13 +36,48 @@
                 else
                 {
                     <td>Income</td>
-
                 }
                 <td>@m.Ammount</td>
                 <td>@m.Date.ToShortDateString()</td>
                 <td>@m.Causale</td>
-                <td onclick="selectRow(this)">@m.Description</td>
+                <td onclick="selectRow(this)">@m.Description.Substring(0, 150)</td>
             </tr>
         }
     </table>
+    <p>Already Tagged</p>
+        @{
+            var reports = Model.Reports
+                .Where(x => x.Tagged)
+                .GroupBy(x => x.Type)
+                .Select(x => new { Type = x.Key, G = x.GroupBy(y => y.Tag) });
+
+        }
+        @foreach (var m in reports)
+        {
+            <ul>
+
+                @if (m.Type.IsExpence)
+                {
+                    <li>Expence</li>
+                }
+                else
+                {
+                    <li>Income</li>
+                }
+                <li>
+
+                    <ul>
+
+                        @foreach (var g in m.G)
+                        {
+                            <li>
+                                @Model.Tags.First(x => x.Value == g.Key.ToString()).Text
+                                @g.Sum(x => x.Ammount)
+                            </li>
+                        }
+                    </ul>
+                </li>
+
+            </ul>
+        }
 </div>

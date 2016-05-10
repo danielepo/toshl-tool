@@ -7,22 +7,37 @@ open System.Globalization
 let loadMovimenti path=
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
+
+    let ignored = 
+        Ignored.Load(path + "MappingRules.csv") 
+        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "ignore" ))
+
+    let rules = 
+        Ignored.Load(path + "MappingRules.csv") 
+        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "tag" ))
+
     let movimentiCsv = EstrattoConto.Load("ListaMovimenti.csv")
-    let record (x:EstrattoConto.Row) y= {
-        Date = DateTime.Parse(x.DATA);
-        Ammount = y; 
-        Causale =(if x.``CAUSALE ABI``.HasValue then x.``CAUSALE ABI``.Value else 0); 
-        Description = x.``DESCRIZIONE OPERAZIONE``
+    let record (x:EstrattoConto.Row) y= 
+        let tag = 
+            let rulesThatBegins =
+                rules 
+                |> Seq.filter (fun r -> r.Rule = "tag" && x.``DESCRIZIONE OPERAZIONE``.StartsWith(r.Starts))
+            if Seq.isEmpty rulesThatBegins then 0 else Int32.Parse((Seq.head rulesThatBegins).TagId)
+
+        {
+            Date = DateTime.Parse(x.DATA);
+            Ammount = y; 
+            Causale =(if x.``CAUSALE ABI``.HasValue then x.``CAUSALE ABI``.Value else 0); 
+            Description = x.``DESCRIZIONE OPERAZIONE``;
+            Tag = tag
         }
+
     let getExpence (x:EstrattoConto.Row) = 
         Expence <| record x x.DARE
     let getIncome (x:EstrattoConto.Row) = 
         Income <| record x x.AVERE
     let isExpence (x:EstrattoConto.Row) =
         not <| Double.IsNaN x.DARE
-    let ignored = 
-        Ignored.Load(path + "MappingRules.csv") 
-        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "ignore" ))
 
     let movimenti = 
         let isIgnored (s:string) = ignored |> Seq.fold (fun acc x -> acc || s.StartsWith x.Starts) false
@@ -30,7 +45,7 @@ let loadMovimenti path=
         let shouldSkip s = isSaldo s || isIgnored s
 
         movimentiCsv.Rows 
-        |> Seq.filter (fun x -> not <| shouldSkip x.``DESCRIZIONE OPERAZIONE``) 
+        |> Seq.filter (fun x -> not <| shouldSkip x.``DESCRIZIONE OPERAZIONE``)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
 
 //    for row in movimenti do
@@ -43,11 +58,24 @@ let loadMovimenti path=
 type CatType =
     | Expence
     | Income
-type ReportVm =
-    {Ammount : double; Date: DateTime; Description: string; Causale: int; Type: CatType}
+type ReportVm ={
+    Ammount : double; 
+    Date: DateTime; 
+    Description: string; 
+    Causale: int; 
+    Type: CatType; 
+    Tagged: bool;
+    Tag:int}
 
 let Movimenti (path)=
-    let toVm (y:Record) t = { Ammount = y.Ammount; Date = y.Date; Description = y.Description; Causale = y.Causale; Type = t  } 
+    let toVm (y:Record) t = { 
+        Ammount = y.Ammount; 
+        Date = y.Date; 
+        Description = y.Description; 
+        Causale = y.Causale; 
+        Type = t ;
+        Tagged = not (y.Tag = 0);
+        Tag = y.Tag} 
     loadMovimenti path
     |> Seq.map (fun x -> 
         match x with
