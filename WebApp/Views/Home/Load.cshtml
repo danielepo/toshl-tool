@@ -1,0 +1,40 @@
+﻿@model WebApp.Controllers.LoadVM
+
+@{
+    ViewBag.Title = "Load";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Load</h2>
+
+<h3>Saved</h3>
+<table class="table">
+    <tr>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model.saved)
+    {
+        <tr>
+            <td> @item.date        </td>
+            <td> @item.desc               </td>
+    </tr>
+    }
+
+</table>
+
+<h3>Not Saved</h3>
+<table class="table">
+    <tr>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model.error)
+    {
+        <tr>
+            <td> @item.date        </td>
+            <td> @item.desc               </td>
+        </tr>
+    }
+
+</table>

@@ -113,9 +113,9 @@ let addAuthorization (request : IRestRequest) =
         ("Authorization", 
          "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg==")     
 
-let init() = 
-    client.Proxy <- System.Net.HttpWebRequest.DefaultWebProxy
-    client.Proxy.Credentials <- NetworkCredential("eul0856","Dony2206!")
+let init() = ()
+//    client.Proxy <- System.Net.HttpWebRequest.DefaultWebProxy
+//    client.Proxy.Credentials <- NetworkCredential("eul0856","Dony2206!")
 
 let excecuteRequest (request : IRestRequest) = 
     init()
@@ -155,3 +155,43 @@ let setEntry (entry:Entry)=
     let request = getRequest "/entries" Method.POST
     request.AddHeader("Accept","application/json").AddBody(jsonEntry)
     |>  excecuteRequest
+
+open Parser
+open Types
+
+let BuildEntryList(path:string) =
+    let movimenti = loadMovimenti path
+    let tags = getTags()
+    let movimentiToEntry (x:Movement):Entry = 
+            let rid = "13106"
+            let euro = {code="EUR"}
+            let mte (m:Record) a=
+                let tag = tags |> Option.map (fun y -> y |> List.find (fun k -> k.id = m.Tag.ToString()))
+                        
+                {
+                amount = a; 
+                currency = euro;
+                date = m.Date.ToString("yyyy-MM-dd");
+                desc = m.Description;
+                account = rid;
+                category = if tag.IsSome then tag.Value.category else "0";
+                tags = [m.Tag.ToString()];
+                completed = true}
+
+            match x with
+            | Movement.Expence e -> mte e (-e.Ammount) 
+            | Movement.Income i -> mte i i.Ammount
+            
+    movimenti |> 
+        Seq.map movimentiToEntry
+
+let SaveEntries path =
+    let entries = BuildEntryList path |> List.ofSeq
+    let rec save ee saved error=
+        match ee with
+        | e::es -> match setEntry e with 
+                    | Some v -> save es (e::saved) error
+                    | None -> save es saved (e::error)
+        | [] -> saved|>Seq.ofList,error|>Seq.ofList
+
+    save entries [] []

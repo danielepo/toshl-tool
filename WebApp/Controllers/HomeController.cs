@@ -12,6 +12,11 @@ namespace WebApp.Controllers
         public List<SelectListItem> Tags;
         public List<SelectListItem> Rules;
     }
+    public class LoadVM
+    {
+        public IEnumerable<ToshClient.Entry> saved;
+        public IEnumerable<ToshClient.Entry> error;
+    }
     public class HomeController : Controller
     {
             string path = System.Web.HttpContext.Current.Request.PhysicalApplicationPath;
@@ -50,6 +55,18 @@ namespace WebApp.Controllers
             return View(BuildVMM());
 
         }
+        public ActionResult Load()
+        {
+            var entries = ToshClient.SaveEntries(path);
+            var vm = new LoadVM()
+            {
+                saved = entries.Item1,
+                error = entries.Item2
+            };
+            
+            return View(vm);
+        }
+
         public ActionResult About()
         {
             ViewBag.Message = "Your application description page.";
