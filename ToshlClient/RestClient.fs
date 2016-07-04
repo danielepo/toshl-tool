@@ -183,7 +183,7 @@ let setEntry (entry : Entry) =
     let request = getRequest "/entries" Method.POST
     request.AddHeader("Accept", "application/json").AddBody(jsonEntry) |> excecuteRequest
 
-let SaveRecords account path = 
+let SaveRecords account path file= 
     let tags = GetTags()
     let getTag (x : ReportVm) = tags |> List.filter (fun t -> t.id = x.Tag.ToString())
     let categories = getCategories()
@@ -209,7 +209,7 @@ let SaveRecords account path =
           completed = true }
     
     let movimenti = 
-        Movimenti path
+        Movimenti path file
         |> Seq.filter (fun x -> x.Tagged)
         |> Seq.map createEntry
         |> Seq.map setEntry
