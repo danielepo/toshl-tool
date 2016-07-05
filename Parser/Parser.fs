@@ -3,10 +3,14 @@
 open System
 open Types
 open System.Globalization
+open System.IO
 
-let loadMovimenti path=
+
+let loadMovimenti path (file:Stream)=
+    file.Position <- 0
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
+    Threading.Thread.CurrentThread.CurrentUICulture <- it
 
     let ignored = 
         Ignored.Load(path + "MappingRules.csv") 
@@ -16,19 +20,19 @@ let loadMovimenti path=
         Ignored.Load(path + "MappingRules.csv") 
         |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "tag" ))
 
-    let movimentiCsv = EstrattoConto.Load("ListaMovimenti.csv")
+    let movimentiCsv = EstrattoConto.Load(file)
     let record (x:EstrattoConto.Row) y= 
         let tag = 
             let rulesThatBegins =
                 rules 
                 |> Seq.filter (fun r -> r.Rule = "tag" && x.``DESCRIZIONE OPERAZIONE``.StartsWith(r.Starts))
             if Seq.isEmpty rulesThatBegins then 0 else Int32.Parse((Seq.head rulesThatBegins).TagId)
-
+        let isCausale, causale = Int32.TryParse x.``CAUSALE ABI``
         {
-            Date = DateTime.Parse(x.DATA);
-            Ammount = y; 
-            Causale =(if x.``CAUSALE ABI``.HasValue then x.``CAUSALE ABI``.Value else 0); 
-            Description = x.``DESCRIZIONE OPERAZIONE``;
+            Date = x.DATA
+            Ammount = y
+            Causale = if isCausale then causale else 0
+            Description = x.``DESCRIZIONE OPERAZIONE``
             Tag = tag
         }
 
@@ -67,7 +71,7 @@ type ReportVm ={
     Tagged: bool;
     Tag:int}
 
-let Movimenti (path)=
+let Movimenti (path) file=
     let toVm (y:Record) t = { 
         Ammount = y.Ammount; 
         Date = y.Date; 
@@ -76,7 +80,7 @@ let Movimenti (path)=
         Type = t ;
         Tagged = not (y.Tag = 0);
         Tag = y.Tag} 
-    loadMovimenti path
+    loadMovimenti path file
     |> Seq.map (fun x -> 
         match x with
         | Movement.Expence y -> toVm y CatType.Expence
