@@ -4,7 +4,7 @@ ignore;;PREL.BANCOMAT
 ignore;;CARTA CREDITO BCC
 tag;654791;ACCREDITO STIPENDI PENSIONI RI     Ord: EXCOL STUDIO 
 ignore;;ACCREDITO STIPENDI PENSIONI RI     REPLY S P A
-tag;20118250;R.I.D.                             CRED. SANTANDER CONSUMER BANK SPA RIF. PAGAMENTO
+tag;654813;R.I.D.                             CRED. SANTANDER CONSUMER BANK SPA RIF. PAGAMENTO
 tag;654809;R.I.D.                             CRED. Generali Italia RIF. FACCHINETTI PAOLA
 tag;654796;R.I.D.                             CRED. FINDOMESTIC BANCA S.P.A.
 ignore;;BONIFICO
@@ -16,3 +16,11 @@ tag;19778787;BOLL.TELEFONO                      CRED. TELECOMITALIA SPA
 tag;654791;ACCREDITO STIPENDI PENSIONI RI     VOLTA
 tag;18400616;BOLL.GAS/ENERGIA                   CRED. BLUENERGY GROUP
 tag;20531719;COMMISSIONI CANONE MENSILE                                                                                                                            
+ignore;;R.I.D.                             CRED. PayPal Europe S.a.r.l
+tag;19778787;R.I.D.                             CRED. Tiscali Italia S.p.A.
+ignore;;Ordinante: POZZOBON DANIELE . FACCHINETTI PAOLA Causale: ACCREDITO ORDINE CONTO  ACCREDITO ORDINE CONTO
+ignore;;PRELIEVO BANCOMAT                  DATA/ORA OP
+tag;21097508;RID AUTOSTRADE                     CRED. TELEPASS S.P.A.
+ignore;;Ordinante: ASSIMOCO S.P.A. Causale: ACCREDITO ORDINE CONTO  ACCREDITO ORDINE CONTO Data ordine: 16062016 IBAN ordinante: IT73P08000032000 Indirizzo or
+tag;654791;Ordinante: INPS Causale: ACCREDITO ORDINE CONTO  ACCREDITO ORDINE CONTO
+tag;21097734;Ordinante: MEDIOCREDITO DEL FVG - S.P.A. Causale: ACCREDITO ORDINE CONTO  ACCREDITO ORDINE CONTO Data ordine: 27062016 IBAN ordinante: IT88R1064012300

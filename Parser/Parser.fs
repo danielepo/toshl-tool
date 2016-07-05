@@ -7,7 +7,7 @@ open System.IO
 
 
 let loadMovimenti path (file:Stream)=
-    file.Position <- 0
+    file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
     Threading.Thread.CurrentThread.CurrentUICulture <- it
