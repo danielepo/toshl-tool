@@ -7,24 +7,18 @@ open System.IO
 
 
 let loadMovimenti path (file:Stream)=
-    file.Position <- 0
+    file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
     Threading.Thread.CurrentThread.CurrentUICulture <- it
 
-    let ignored = 
-        Ignored.Load(path + "MappingRules.csv") 
-        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "ignore" ))
-
-    let rules = 
-        Ignored.Load(path + "MappingRules.csv") 
-        |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = "tag" ))
+    let rules str = Ignored.Load(path + "MappingRules.csv")  |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = str ))
 
     let movimentiCsv = EstrattoConto.Load(file)
     let record (x:EstrattoConto.Row) y= 
         let tag = 
             let rulesThatBegins =
-                rules 
+                rules "tag" 
                 |> Seq.filter (fun r -> r.Rule = "tag" && x.``DESCRIZIONE OPERAZIONE``.StartsWith(r.Starts))
             if Seq.isEmpty rulesThatBegins then 0 else Int32.Parse((Seq.head rulesThatBegins).TagId)
         let isCausale, causale = Int32.TryParse x.``CAUSALE ABI``
@@ -36,14 +30,12 @@ let loadMovimenti path (file:Stream)=
             Tag = tag
         }
 
-    let getExpence (x:EstrattoConto.Row) = 
-        Expence <| record x x.DARE
-    let getIncome (x:EstrattoConto.Row) = 
-        Income <| record x x.AVERE
-    let isExpence (x:EstrattoConto.Row) =
-        not <| Double.IsNaN x.DARE
+    let getExpence (x:EstrattoConto.Row) = Expence <| record x x.DARE
+    let getIncome (x:EstrattoConto.Row) = Income <| record x x.AVERE
+    let isExpence (x:EstrattoConto.Row) = Double.IsNaN x.AVERE
 
     let movimenti = 
+        let ignored = rules "ignore"
         let isIgnored (s:string) = ignored |> Seq.fold (fun acc x -> acc || s.StartsWith x.Starts) false
         let isSaldo s =  s = "Saldo iniziale" || s = "Saldo contabile"
         let shouldSkip s = isSaldo s || isIgnored s
@@ -52,16 +44,12 @@ let loadMovimenti path (file:Stream)=
         |> Seq.filter (fun x -> not <| shouldSkip x.``DESCRIZIONE OPERAZIONE``)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
 
-//    for row in movimenti do
-//        match row with 
-//        | Expence x -> printf "Expence\t%s\t%.2f\t%d\t%s \n" (x.Date.ToShortDateString()) x.Ammount x.Causale x.Description
-//        | Income x -> printf "Income\t%s\t%.2f\t%d\t%s \n" (x.Date.ToShortDateString()) x.Ammount x.Causale x.Description
-//    
     movimenti
 
 type CatType =
     | Expence
     | Income
+
 type ReportVm ={
     Ammount : double; 
     Date: DateTime; 
@@ -70,6 +58,10 @@ type ReportVm ={
     Type: CatType; 
     Tagged: bool;
     Tag:int}
+
+type RuleType = 
+    | Ignore = 0
+    | Tagged = 1
 
 let Movimenti (path) file=
     let toVm (y:Record) t = { 
@@ -87,9 +79,6 @@ let Movimenti (path) file=
         | Movement.Income y ->  toVm y CatType.Income)
 
 
-type RuleType = 
-    | Ignore = 0
-    | Tagged = 1
 let addGenericRule rule tagId startString path=
     let ruleFile = path + "MappingRules.csv"
     let newRow = [Ignored.Row(rule,tagId,startString)]
