@@ -151,6 +151,7 @@ let excecuteRequest (request : IRestRequest) =
         |> client.Execute
     match response.StatusCode with
     | HttpStatusCode.OK -> Some response.Content
+    | HttpStatusCode.Created -> Some "Entry created"
     | _ -> None
 
 let getTags() = 
@@ -220,4 +221,4 @@ let SaveRecords account path file=
     for entry in entries do
         setEntry entry |> ignore
     
-    ()
+  
