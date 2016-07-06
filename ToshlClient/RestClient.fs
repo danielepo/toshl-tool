@@ -139,9 +139,9 @@ let addAuthorization (request : IRestRequest) =
         ("Authorization", 
          "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg==")
 
-let init() = 
-    client.Proxy <- System.Net.HttpWebRequest.DefaultWebProxy
-    client.Proxy.Credentials <- NetworkCredential("eul0856", "Dony2206!")
+let init() = ()
+//    client.Proxy <- System.Net.HttpWebRequest.DefaultWebProxy
+//    client.Proxy.Credentials <- NetworkCredential("eul0856", "Dony2206!")
 
 let excecuteRequest (request : IRestRequest) = 
     init()
@@ -151,6 +151,7 @@ let excecuteRequest (request : IRestRequest) =
         |> client.Execute
     match response.StatusCode with
     | HttpStatusCode.OK -> Some response.Content
+    | HttpStatusCode.Created -> Some "Entry created"
     | _ -> None
 
 let getTags() = 
@@ -181,7 +182,12 @@ let GetAccounts() =
 let setEntry (entry : Entry) = 
     let jsonEntry = Newtonsoft.Json.JsonConvert.SerializeObject(entry)
     let request = getRequest "/entries" Method.POST
-    request.AddHeader("Accept", "application/json").AddBody(jsonEntry) |> excecuteRequest
+    let accept = "application/json"
+    request.RequestFormat <- DataFormat.Json;
+    request.
+        AddHeader("Content-Type", accept).
+        AddBody(entry) 
+    |> excecuteRequest
 
 let SaveRecords account path file= 
     let tags = GetTags()
@@ -208,10 +214,11 @@ let SaveRecords account path file=
           tags = getTag x |> List.map (fun t -> t.id)
           completed = true }
     
-    let movimenti = 
-        Movimenti path file
-        |> Seq.filter (fun x -> x.Tagged)
-        |> Seq.map createEntry
-        |> Seq.map setEntry
     
-    ()
+    let mov = Movimenti path file
+    let filtered = mov |> Seq.filter (fun x -> x.Tagged)
+    let entries = filtered |> Seq.map createEntry
+    for entry in entries do
+        setEntry entry |> ignore
+    
+  
