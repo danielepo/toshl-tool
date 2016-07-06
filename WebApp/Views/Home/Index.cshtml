@@ -3,10 +3,13 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Load</h2>
+<h2>File Loader</h2>
 
 @using (Html.BeginForm("Upload", "Load", FormMethod.Post, new { enctype = "multipart/form-data" }))
 {
-    <input type="file" name="file" />
-    <input type="submit" />
+        @Html.Label("file", "File to Upload")
+    <input type="file" name="file"/>
+    <p class="help-block">File to upload to Toshl </p>
+ 
+    <input type="submit" class="btn btn-default"/>
 }

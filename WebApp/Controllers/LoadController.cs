@@ -18,6 +18,7 @@ namespace WebApp.Controllers
     public class HomeVM
     {
         public List<Parser.ReportVm> Reports;
+        public List<Parser.ReportVm> IgnoredReports;
         public List<SelectListItem> Tags;
         public List<SelectListItem> Rules;
         public List<SelectListItem> Accounts;
@@ -29,19 +30,24 @@ namespace WebApp.Controllers
         private HomeVM BuildVMM()
         {
 
-            var homeVM = new HomeVM();
-
-            homeVM.Reports = new List<Parser.ReportVm>(Parser.Movimenti(path, inputStream));
             var Tags = new List<ToshClient.Tag>(ToshClient.GetTags());
-            List<SelectListItem> tagsVm;
-            homeVM.Tags = Tags.Where(x => !x.deleted).Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id }).ToList();
-            homeVM.Rules = new List<SelectListItem>()
-            {
-               new SelectListItem() {Text = "Ignore", Value = ((int) Parser.RuleType.Ignore).ToString() },
-               new SelectListItem() {Text = "Tag", Value = ((int)Parser.RuleType.Tagged).ToString() }
-            };
             var Accounts = new List<ToshClient.Account>(ToshClient.GetAccounts());
-            homeVM.Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList();
+            var homeVM = new HomeVM
+            {
+                Reports = new List<Parser.ReportVm>(Parser.Movimenti(path, inputStream)),
+                IgnoredReports = new List<Parser.ReportVm>(Parser.Ignorati(path, inputStream)),
+                Tags =
+                    Tags.Where(x => !x.deleted)
+                        .Select(tag => new SelectListItem() {Text = tag.name, Value = tag.id})
+                        .ToList(),
+                Rules = new List<SelectListItem>()
+                {
+                    new SelectListItem() {Text = "Ignore", Value = ((int) Parser.RuleType.Ignore).ToString()},
+                    new SelectListItem() {Text = "Tag", Value = ((int) Parser.RuleType.Tagged).ToString()}
+                },
+                Accounts = Accounts.Select(x => new SelectListItem() {Text = x.name, Value = x.id.ToString()}).ToList()
+            };
+
             return homeVM;
         }
 

@@ -6,7 +6,7 @@ open System.Globalization
 open System.IO
 
 
-let loadMovimenti path (file:Stream)=
+let loadMovimenti path (file:Stream) getIgnored=
     file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
@@ -38,10 +38,15 @@ let loadMovimenti path (file:Stream)=
         let ignored = rules "ignore"
         let isIgnored (s:string) = ignored |> Seq.fold (fun acc x -> acc || s.StartsWith x.Starts) false
         let isSaldo s =  s = "Saldo iniziale" || s = "Saldo contabile"
-        let shouldSkip s = isSaldo s || isIgnored s
+
+        let shouldGet s = 
+            let (!!!) x = if getIgnored then x else not x
+            not (isSaldo s) && !!! (isIgnored s)
+        
+        
 
         movimentiCsv.Rows 
-        |> Seq.filter (fun x -> not <| shouldSkip x.``DESCRIZIONE OPERAZIONE``)
+        |> Seq.filter (fun x -> shouldGet x.``DESCRIZIONE OPERAZIONE``)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
 
     movimenti
@@ -63,7 +68,7 @@ type RuleType =
     | Ignore = 0
     | Tagged = 1
 
-let Movimenti (path) file=
+let movimentiVm path file getIgnored = 
     let toVm (y:Record) t = { 
         Ammount = y.Ammount; 
         Date = y.Date; 
@@ -72,12 +77,16 @@ let Movimenti (path) file=
         Type = t ;
         Tagged = not (y.Tag = 0);
         Tag = y.Tag} 
-    loadMovimenti path file
+    loadMovimenti path file getIgnored
     |> Seq.map (fun x -> 
         match x with
         | Movement.Expence y -> toVm y CatType.Expence
         | Movement.Income y ->  toVm y CatType.Income)
 
+let Movimenti path file=
+    movimentiVm path file false
+let Ignorati path file=
+     movimentiVm path file true
 
 let addGenericRule rule tagId startString path=
     let ruleFile = path + "MappingRules.csv"
