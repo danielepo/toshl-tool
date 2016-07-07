@@ -5,6 +5,7 @@ open Parser
 open RestSharp
 open System
 open System.Net
+open System.Linq
 
 type TagCount = 
     { entries : int
@@ -136,10 +137,15 @@ let getRequest (resource : string) (``method`` : Method) = RestRequest(resource,
 
 
 let getConfiguration (key:string) =
-    System.Configuration.ConfigurationManager.AppSettings.Get(key)
+//    System.Configuration.ConfigurationManager.AppSettings.Get(key)
+    match key with
+    | "proxy_addr" -> "http://proxyfull.servizi.ras:80"
+    | "proxy_user" -> "eul0856"
+    | "proxy_pass" -> "Dony2207!"
+    | "auth_token" -> "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg=="
 
 let existsConfiguration (key:string) =
-    System.Configuration.ConfigurationManager.AppSettings.Get(key) <> null
+    getConfiguration key <> null
 
 //    extra: obj;
 let addAuthorization (request : IRestRequest) = 
@@ -154,16 +160,83 @@ let init() = //()
     else
         ()
 
+
+
+type Link = 
+    | First of int
+    | Next of int
+    | Last of int
+    | Unknown
+
+
+
+type LinkRecord = 
+    {First: int; Next: int option; Last: int}
+
+type ResponceType = 
+    | PagedContent of int * string
+    | Content of string
+    | Created
+    | Error
+
 let excecuteRequest (request : IRestRequest) = 
+    
+    let (|Contains|_|) (s1:string) (s2:string) = 
+        if s2.Contains(s1) then Some s2 else None
+
+    let extractPage (s:string) = 
+        let start = s.IndexOf("<") + 1
+        let length = s.IndexOf(">") - start
+        let link = s.Substring(start,length)
+        
+        let input = link.Substring(link.IndexOf("page") + 5)
+        String(input.TakeWhile(Char.IsDigit).ToArray()) |> Int32.Parse
+        
+
+    let toLink = 
+        function
+        | Contains "first" x -> extractPage x |> First 
+        | Contains "next" x -> extractPage x |> Next
+        | Contains "last" x -> extractPage x |> Last
+        | _ -> Unknown
+    let toLinkRecord (l:Link seq)=
+        let firsts =
+            l |> Seq.choose(fun x ->
+                match x with 
+                | First l -> Some l
+                | _ -> None) |> List.ofSeq
+        let nexts =
+            l |> Seq.choose(fun x ->
+                match x with 
+                | Next l -> Some l
+                | _ -> None) |> List.ofSeq
+        let lasts =
+            l |> Seq.choose(fun x ->
+                match x with 
+                | Last l -> Some l
+                | _ -> None) |> List.ofSeq
+        {
+            First = firsts.Head
+            Next= if not nexts.IsEmpty then Some nexts.Head else None
+            Last = lasts.Head
+        }
+    
+
     init()
     let response = 
         request
         |> addAuthorization
         |> client.Execute
+
+    let linksObj = response.Headers |> Seq.find (fun x -> x.Name = "Link")
+    let links = ((string)linksObj.Value).Split(',') |> Seq.map toLink |> toLinkRecord
+
     match response.StatusCode with
-    | HttpStatusCode.OK -> Some response.Content
-    | HttpStatusCode.Created -> Some "Entry created"
-    | _ -> None
+    | HttpStatusCode.OK -> Content response.Content
+    | HttpStatusCode.Created -> Created
+    | _ -> Error
+
+
 
 let getTags() = 
     getRequest "/tags" Method.GET
@@ -179,6 +252,18 @@ let getCategories() =
     getRequest "/categories" Method.GET
     |> excecuteRequest
     |> Option.map (fun x -> JsonConvert.DeserializeObject<Category list>(x))
+
+let getEntries (f:DateTime) (t:DateTime) = 
+    let resource = sprintf "/entries?from=%s&to=%s&page=0" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
+    getRequest resource Method.GET
+    |> excecuteRequest
+    |> Option.map (fun x -> JsonConvert.DeserializeObject<Entry list>(x))
+
+let GetEntries (f:DateTime) (t:DateTime) = 
+    match getEntries f t with
+    | Some x -> x
+    | None -> []
+
 
 let getAccounts() = 
     getRequest "/accounts" Method.GET
