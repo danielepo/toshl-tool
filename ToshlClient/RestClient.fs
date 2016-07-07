@@ -139,11 +139,11 @@ let getRequest (resource : string) (``method`` : Method) = RestRequest(resource,
 let getConfiguration (key:string) =
 //    System.Configuration.ConfigurationManager.AppSettings.Get(key)
     match key with
-    | "proxy_addr" -> "http://proxyfull.servizi.ras:80"
-    | "proxy_user" -> "eul0856"
-    | "proxy_pass" -> "Dony2207!"
+//    | "proxy_addr" -> "http://proxyfull.servizi.ras:80"
+//    | "proxy_user" -> "eul0856"
+//    | "proxy_pass" -> "Dony2207!"
     | "auth_token" -> "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg=="
-
+    | _ -> null
 let existsConfiguration (key:string) =
     getConfiguration key <> null
 
@@ -228,11 +228,20 @@ let excecuteRequest (request : IRestRequest) =
         |> addAuthorization
         |> client.Execute
 
-    let linksObj = response.Headers |> Seq.find (fun x -> x.Name = "Link")
-    let links = ((string)linksObj.Value).Split(',') |> Seq.map toLink |> toLinkRecord
+    let links = 
+        let linksObj = 
+            if response.Headers |> Seq.exists (fun x -> x.Name ="Link") 
+            then Some (response.Headers |> Seq.find (fun x -> x.Name ="Link"))
+            else None
+        linksObj 
+        |> Option.map (fun x -> 
+            ((string)x.Value).Split(',') |> Seq.map toLink |> toLinkRecord)
 
+    let hasNext = links.IsSome && links.Value.Next.IsSome
+    let isLast = links.IsSome && links.Value.Next.IsNone 
     match response.StatusCode with
-    | HttpStatusCode.OK -> Content response.Content
+    | HttpStatusCode.OK when hasNext -> PagedContent (links.Value.Next.Value, response.Content)
+    | HttpStatusCode.OK when isLast -> Content response.Content
     | HttpStatusCode.Created -> Created
     | _ -> Error
 
@@ -240,35 +249,46 @@ let excecuteRequest (request : IRestRequest) =
 
 let getTags() = 
     getRequest "/tags" Method.GET
-    |> excecuteRequest
-    |> Option.map (fun x -> JsonConvert.DeserializeObject<Tag list>(x))
+        |> excecuteRequest 
+        |> function
+            | PagedContent (p,c) -> JsonConvert.DeserializeObject<Tag list>(c)
+            | Content c -> JsonConvert.DeserializeObject<Tag list>(c)
+            | _  -> []
 
 let GetTags() = 
-    match getTags() with
-    | Some x -> x
-    | None -> []
+    getTags()
 
 let getCategories() = 
     getRequest "/categories" Method.GET
     |> excecuteRequest
-    |> Option.map (fun x -> JsonConvert.DeserializeObject<Category list>(x))
+    |> function
+        | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Category list>(c))
+        | Content c -> (JsonConvert.DeserializeObject<Category list>(c))
+        | _  -> []
 
 let getEntries (f:DateTime) (t:DateTime) = 
-    let resource = sprintf "/entries?from=%s&to=%s&page=0" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
-    getRequest resource Method.GET
-    |> excecuteRequest
-    |> Option.map (fun x -> JsonConvert.DeserializeObject<Entry list>(x))
+    let rec gew page = 
+        let resource = sprintf "/entries?from=%s&to=%s&page=%d" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd")) page
+//        let resource = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd")) 
+        getRequest resource Method.GET
+        |> excecuteRequest
+        |> function
+            | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Entry list>(c)) :: gew p
+            | Content c -> (JsonConvert.DeserializeObject<Entry list>(c)) :: []
+            | _  -> []
+    gew 0 |> List.concat |> List.sortBy (fun x -> x.date)
 
 let GetEntries (f:DateTime) (t:DateTime) = 
-    match getEntries f t with
-    | Some x -> x
-    | None -> []
+    getEntries f t 
 
 
 let getAccounts() = 
     getRequest "/accounts" Method.GET
     |> excecuteRequest
-    |> Option.map (fun x -> JsonConvert.DeserializeObject<Account list>(x))
+    |> function
+        | PagedContent (p,c) -> Some (JsonConvert.DeserializeObject<Account list>(c))
+        | Content c -> Some (JsonConvert.DeserializeObject<Account list>(c))
+        | _  -> None
 
 let GetAccounts() = 
     match getAccounts() with
@@ -291,8 +311,8 @@ let SaveRecords account path file=
     
     let getCategory (x : ReportVm) = 
         let tag = getTag x |> List.head
-        if categories.IsSome then 
-            (categories.Value
+        if not categories.IsEmpty then 
+            (categories
              |> List.filter (fun t -> t.id = tag.category)
              |> List.head).id
         else ""
