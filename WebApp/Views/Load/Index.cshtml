@@ -12,41 +12,52 @@
         $("#start").val($(elm).text());
     }
 </script>
+<h2>Entries Analysis</h2>
 
-<div class="row">
-    @using (Html.BeginForm("Index","Load",FormMethod.Post))
+    @if (Model.Reports.Any(x => !x.Tagged))
     {
-        <div class="row">
-            <div class="col-md-2">@Html.DropDownList("tag", Model.Tags)</div>
-            <div class="col-md-1">@Html.DropDownList("rule", Model.Rules)</div>
-            <div class="col-md-8"><input type="text" id="start" name="start" style="max-width: 1000px;width:100%" /></div>
-            <div class="col-md-1"><input type="submit" value="send" /></div>
-        </div>
-    }
-    
-    <table>
-        <caption>Not Tagged</caption>
-
-        @foreach (var m in Model.Reports.Where(x => !x.Tagged))
+        using (Html.BeginForm("Index", "Load", FormMethod.Post))
         {
-            <tr>
-
-                @if (m.Type.IsExpence)
-                {
-                    <td>Expence</td>
-                }
-                else
-                {
-                    <td>Income</td>
-                }
-                <td>@m.Ammount</td>
-                <td>@m.Date.ToShortDateString()</td>
-                <td>@m.Causale</td>
-                <td onclick="selectRow(this)">@m.Description.Substring(0, 150)</td>
-            </tr>
+            <h3>Add Rule</h3>
+            <div class="form-group">
+                @Html.Label("tag", "Tag")
+                @Html.DropDownList("tag", Model.Tags, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.Label("rule", "Rule")
+                @Html.DropDownList("rule", Model.Rules, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                @Html.Label("start", "Start String")
+                <input type="text" id="start" name="start" style="max-width: 1000px; width: 100%" class="form-control" />
+            </div>
+            <div class="form-group"><input type="submit" value="send" class="btn btn-default" /></div>
         }
-    </table>
-    <p>Already Tagged</p>
+        <h3>Not Tagged</h3>
+        <table class="table table-hover table-condensed table-bordered">
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var m in Model.Reports.Where(x => !x.Tagged))
+                {
+                    var trClass = m.Type.IsExpence ? "danger" : "success";
+                    <tr class="@trClass">
+                        <td>@m.Ammount.ToString("C")</td>
+                        <td>@m.Date.ToShortDateString()</td>
+                        <td onclick="selectRow(this)">@m.Description.Substring(0, 150)</td>
+                    </tr>
+                }
+            </tbody>
+
+        </table>
+    }
+
     @{
         var reports = Model.Reports
             .Where(x => x.Tagged)
@@ -54,39 +65,68 @@
             .Select(x => new { Type = x.Key, G = x.GroupBy(y => y.Tag) });
 
     }
-    @foreach (var m in reports)
+    @if (reports.Any())
     {
-        <ul>
 
-            @if (m.Type.IsExpence)
-            {
-                <li>Expence</li>
-            }
-            else
-            {
-                <li>Income</li>
-            }
-            <li>
+        <h3>Already Tagged</h3>
+        <table class="table table-hover table-condensed table-bordered">
+            <thead><tr><th>Tag</th><th>Total</th></tr></thead>
+            <tbody>
 
-                <ul>
+                @foreach (var m in reports)
+                {
+                    var trClass = m.Type.IsExpence ? "danger" : "success";
 
-                    @foreach (var g in m.G)
+                    foreach (var g in m.G)
                     {
-                        <li>
-                            @Model.Tags.First(x => x.Value == g.Key.ToString()).Text
-                            @g.Sum(x => x.Ammount)
-                        </li>
+                        <tr class="@trClass">
+                            <td>@Model.Tags.First(x => x.Value == g.Key.ToString()).Text</td>
+                            <td>@g.Sum(x => x.Ammount).ToString("C")</td>
+                        </tr>
                     }
-                </ul>
-            </li>
+                }
+            </tbody>
+        </table>
+        using (Html.BeginForm("Save", "Load", FormMethod.Post))
+        {
+            <h3>Save Entries</h3>
 
-        </ul>
+            <div class="form-group">
+                @Html.Label("account", "Account")
+                @Html.DropDownList("account", Model.Accounts, new { @class = "form-control" })
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Submit" class="btn btn-default" />
+            </div>
+        }
     }
-    @using (Html.BeginForm("Save","Load",FormMethod.Post))
+
+
+
+    @if (Model.IgnoredReports.Any())
     {
-        <div class="row">
-            <div class="col-md-1">@Html.DropDownList("account", Model.Accounts)</div>
-            <div class="col-md-1"><input type="submit" value="Salva Movimenti" /></div>
-        </div>
+        <h3>Ignored</h3>
+        <table class="table table-hover table-condensed table-bordered">
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var m in Model.IgnoredReports)
+                {
+                    var trClass = m.Type.IsExpence ? "danger" : "success";
+                    <tr class="@trClass">
+                        <td>@m.Ammount.ToString("C")</td>
+                        <td>@m.Date.ToShortDateString()</td>
+                        <td>@m.Description.Substring(0, 150)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     }
-</div>
+
+@Html.ActionLink("Back to Home", "Index", "Home")
