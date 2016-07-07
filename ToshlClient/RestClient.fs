@@ -133,15 +133,26 @@ type Entry =
 
 let client = new RestClient("https://api.toshl.com")
 let getRequest (resource : string) (``method`` : Method) = RestRequest(resource, ``method``)
+
+
+let getConfiguration (key:string) =
+    System.Configuration.ConfigurationManager.AppSettings.Get(key)
+
+let existsConfiguration (key:string) =
+    System.Configuration.ConfigurationManager.AppSettings.Get(key) <> null
+
 //    extra: obj;
 let addAuthorization (request : IRestRequest) = 
     request.AddHeader
-        ("Authorization", 
-         "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg==")
+        ("Authorization", getConfiguration "auth_token")
 
-let init() = ()
-//    client.Proxy <- System.Net.HttpWebRequest.DefaultWebProxy
-//    client.Proxy.Credentials <- NetworkCredential("eul0856", "Dony2206!")
+let init() = //()
+    let useProxy = ["proxy_addr";"proxy_user";"proxy_pass"] |> List.map existsConfiguration |> List.fold (&&) true
+    if useProxy then
+        client.Proxy <- WebProxy(getConfiguration "proxy_addr")
+        client.Proxy.Credentials <- NetworkCredential(getConfiguration "proxy_user", getConfiguration "proxy_pass")
+    else
+        ()
 
 let excecuteRequest (request : IRestRequest) = 
     init()
