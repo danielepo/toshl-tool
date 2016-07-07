@@ -248,12 +248,15 @@ let excecuteRequest (request : IRestRequest) =
 
 
 let getTags() = 
-    getRequest "/tags" Method.GET
-        |> excecuteRequest 
+    let rec gew page = 
+        let resource = sprintf "/tags?page=%d" page
+        getRequest resource Method.GET
+        |> excecuteRequest
         |> function
-            | PagedContent (p,c) -> JsonConvert.DeserializeObject<Tag list>(c)
-            | Content c -> JsonConvert.DeserializeObject<Tag list>(c)
+            | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Tag list>(c)) :: gew p
+            | Content c -> (JsonConvert.DeserializeObject<Tag list>(c)) :: []
             | _  -> []
+    gew 0 |> List.concat
 
 let GetTags() = 
     getTags()
@@ -278,8 +281,23 @@ let getEntries (f:DateTime) (t:DateTime) =
             | _  -> []
     gew 0 |> List.concat |> List.sortBy (fun x -> x.date)
 
-let GetEntries (f:DateTime) (t:DateTime) = 
-    getEntries f t 
+type TaggedEntry = {
+    Key: Tag
+    Value: Entry seq}
+
+let GetEntriesByTag (f:DateTime) (t:DateTime) = 
+    let tagGroupToTaggedEntries (tags:string list,entry:Entry seq) =
+        let allTags = GetTags()
+        let findTag tag = allTags |> List.find(fun x -> x.id = tag) 
+        tags 
+        |> List.map (fun tag -> {Key = findTag tag; Value =  entry})
+        |> Seq.ofList
+
+    (getEntries f t )
+    |> Seq.ofList 
+    |> Seq.groupBy (fun x -> x.tags)
+    |> Seq.map tagGroupToTaggedEntries
+    |> Seq.concat
 
 
 let getAccounts() = 

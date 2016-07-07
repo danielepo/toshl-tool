@@ -6,6 +6,10 @@ using Microsoft.FSharp.Core;
 
 namespace WebApp.Controllers
 {
+    public class Graphic
+    {
+       public IEnumerable<ToshClient.TaggedEntry> taggedEntries { get; set; }
+    }
     [RequireHttps]
     public class DashboardController : Controller
     {
@@ -19,8 +23,12 @@ namespace WebApp.Controllers
             //  . calcola i costi totali nell'anno per tag
             //  .. per ogni tag poter indicare il tipo ricorrenza (o i mesi in cui ricorrere)
             var startDate = new DateTime(2016,1,1,0,0,0);
-            var fSharpOption = new List<ToshClient.Entry>(ToshClient.GetEntries(startDate, startDate.AddYears(1)));
-            return View();
+
+            var vm = new Graphic
+            {
+                taggedEntries = ToshClient.GetEntriesByTag(startDate, startDate.AddYears(1))
+            };
+            return View(vm);
         }
     }
 }
