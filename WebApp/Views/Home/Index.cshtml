@@ -3,13 +3,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>File Loader</h2>
+<h2>Toshl Custom Manager</h2>
+<p>Welcome to the Toshl Custom Manager</p>
 
-@using (Html.BeginForm("Upload", "Load", FormMethod.Post, new { enctype = "multipart/form-data" }))
-{
-        @Html.Label("file", "File to Upload")
-    <input type="file" name="file"/>
-    <p class="help-block">File to upload to Toshl </p>
- 
-    <input type="submit" class="btn btn-default"/>
-}
+@Html.ActionLink("Upload a file","Upload", "Load")<br/>
+@Html.ActionLink("Upload a file","Index", "Dashboard")

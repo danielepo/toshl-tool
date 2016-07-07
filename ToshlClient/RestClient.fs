@@ -191,7 +191,6 @@ let GetAccounts() =
     | None -> []
 
 let setEntry (entry : Entry) = 
-    let jsonEntry = Newtonsoft.Json.JsonConvert.SerializeObject(entry)
     let request = getRequest "/entries" Method.POST
     let accept = "application/json"
     request.RequestFormat <- DataFormat.Json;

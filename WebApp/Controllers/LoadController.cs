@@ -14,7 +14,7 @@ namespace WebApp.Controllers
         public List<SelectListItem> Rules;
         public List<SelectListItem> Tags;
     }
-
+    [RequireHttps]
     public class LoadController : Controller
     {
         private const string stream = "stream";
@@ -80,6 +80,10 @@ namespace WebApp.Controllers
                 return RedirectToAction("Index", "Home");
 
             return RedirectToAction("Index", "Load");
+        }
+        public ActionResult Upload()
+        {
+            return View();
         }
 
         private HomeVM BuildVMM()
