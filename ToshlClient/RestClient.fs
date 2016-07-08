@@ -245,41 +245,31 @@ let excecuteRequest (request : IRestRequest) =
     | HttpStatusCode.Created -> Created
     | _ -> Error
 
-
+let rec gew page (link:string) deserializer= 
+    let attr = if link.Contains("?") then sprintf "&page=%d" page else sprintf "?page=%d" page 
+    let resource = sprintf "%s%s" link attr
+    getRequest resource Method.GET
+    |> excecuteRequest
+    |> function
+        | PagedContent (p,c) -> deserializer c :: gew p link deserializer
+        | Content c -> deserializer c :: []
+        | _  -> []
 
 let getTags() = 
-    let rec gew page = 
-        let resource = sprintf "/tags?page=%d" page
-        getRequest resource Method.GET
-        |> excecuteRequest
-        |> function
-            | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Tag list>(c)) :: gew p
-            | Content c -> (JsonConvert.DeserializeObject<Tag list>(c)) :: []
-            | _  -> []
-    gew 0 |> List.concat
+    let deserializer c = JsonConvert.DeserializeObject<Tag list>(c)
+    gew 0 "/tags" deserializer |> List.concat
 
 let GetTags() = 
     getTags()
 
 let getCategories() = 
-    getRequest "/categories" Method.GET
-    |> excecuteRequest
-    |> function
-        | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Category list>(c))
-        | Content c -> (JsonConvert.DeserializeObject<Category list>(c))
-        | _  -> []
+    let deserializer c = JsonConvert.DeserializeObject<Category list>(c)
+    gew 0 "/categories" deserializer |> List.concat
 
 let getEntries (f:DateTime) (t:DateTime) = 
-    let rec gew page = 
-        let resource = sprintf "/entries?from=%s&to=%s&page=%d" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd")) page
-//        let resource = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd")) 
-        getRequest resource Method.GET
-        |> excecuteRequest
-        |> function
-            | PagedContent (p,c) -> (JsonConvert.DeserializeObject<Entry list>(c)) :: gew p
-            | Content c -> (JsonConvert.DeserializeObject<Entry list>(c)) :: []
-            | _  -> []
-    gew 0 |> List.concat |> List.sortBy (fun x -> x.date)
+    let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
+    let deserializer c = JsonConvert.DeserializeObject<Entry list>(c)
+    gew 0 link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
 
 type TaggedEntry = {
     Key: Tag
