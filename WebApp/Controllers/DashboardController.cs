@@ -15,6 +15,7 @@ namespace WebApp.Controllers
     {
         public ActionResult Index()
         {
+            
             // scegli anno corrente
             // carica tutte le spese fino a fine anno
             // visualizzali in un grafico lineare

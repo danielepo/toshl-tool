@@ -137,13 +137,13 @@ let getRequest (resource : string) (``method`` : Method) = RestRequest(resource,
 
 
 let getConfiguration (key:string) =
-//    System.Configuration.ConfigurationManager.AppSettings.Get(key)
-    match key with
+    System.Configuration.ConfigurationManager.AppSettings.Get(key)
+//    match key with
 //    | "proxy_addr" -> "http://proxyfull.servizi.ras:80"
 //    | "proxy_user" -> "eul0856"
 //    | "proxy_pass" -> "Dony2207!"
-    | "auth_token" -> "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg=="
-    | _ -> null
+//    | "auth_token" -> "Basic ZWYyZDAyMDktZjRiMC00NjAxLTk1NTQtOWY5MzI1NGFhNjlmNWFlYThhMjUtMWM4ZS00ZTcyLTk5NzUtNTFmMjQzNjlhNGYzOg=="
+//    | _ -> null
 let existsConfiguration (key:string) =
     getConfiguration key <> null
 
@@ -279,7 +279,8 @@ let GetEntriesByTag (f:DateTime) (t:DateTime) =
     let tagGroupToTaggedEntries (tags:string list,entry:Entry seq) =
         let allTags = GetTags()
         let findTag tag = allTags |> List.find(fun x -> x.id = tag) 
-        tags 
+        
+        if  obj.ReferenceEquals (tags, null)then  [] else tags
         |> List.map (fun tag -> {Key = findTag tag; Value =  entry})
         |> Seq.ofList
 
@@ -287,7 +288,8 @@ let GetEntriesByTag (f:DateTime) (t:DateTime) =
     |> Seq.ofList 
     |> Seq.groupBy (fun x -> x.tags)
     |> Seq.map tagGroupToTaggedEntries
-    |> Seq.concat
+    |> Seq.concat 
+
 
 
 let getAccounts() = 

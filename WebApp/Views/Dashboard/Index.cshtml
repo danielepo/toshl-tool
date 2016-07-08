@@ -2,16 +2,36 @@
     ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+@using System.Globalization
+@using Microsoft.Owin.Security.Provider
 @model WebApp.Controllers.Graphic
 <h2>title</h2>
-
 <table>
-
-@foreach (var tag in Model.taggedEntries)
+    
+    @foreach (var tag in Model.taggedEntries)
     {
-        foreach(var entry in tag.Value)
+        var ann = tag.Value.Select(x =>
         {
-        <tr><td>@tag.Key</td><td>@entry.amount</td><td>@entry.date</td></tr>
+            var date = DateTime.Parse(x.date);
+            var month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(date.Month);
+            return new {x.amount, month};
+        });
+        var dic = new Dictionary<string,double>();
+        foreach (var a in ann)
+        {
+            if (dic.ContainsKey(a.month))
+            {
+                dic[a.month] += a.amount;
+            }
+            else
+            {
+                dic.Add(a.month,a.amount);
+            }
+        }
+
+        foreach (var entry in dic)
+        {
+            <tr><td>@tag.Key.name</td><td>@entry.Key</td><td>@entry.Value</td></tr>
         }
     }
 </table>
