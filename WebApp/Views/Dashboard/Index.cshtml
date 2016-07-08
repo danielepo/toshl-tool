@@ -3,35 +3,158 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @using System.Globalization
+@using System.Threading
 @using Microsoft.Owin.Security.Provider
 @model WebApp.Controllers.Graphic
 <h2>title</h2>
-<table>
-    
-    @foreach (var tag in Model.taggedEntries)
-    {
-        var ann = tag.Value.Select(x =>
-        {
-            var date = DateTime.Parse(x.date);
-            var month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(date.Month);
-            return new {x.amount, month};
-        });
-        var dic = new Dictionary<string,double>();
-        foreach (var a in ann)
-        {
-            if (dic.ContainsKey(a.month))
-            {
-                dic[a.month] += a.amount;
-            }
-            else
-            {
-                dic.Add(a.month,a.amount);
-            }
-        }
 
-        foreach (var entry in dic)
+@{
+    var months = new[]
         {
-            <tr><td>@tag.Key.name</td><td>@entry.Key</td><td>@entry.Value</td></tr>
+            "January", "February", "March", "April", "May", "June", "July", "August", "September",
+            "October", "November", "Dicember"
+        };
+    var datasets = new List<string>();
+    var areasets = new List<string>();
+}
+@foreach (var tag in Model.taggedEntries)
+{
+    var ann = tag.Value.Where(x => x.amount <= 0).Select(x =>
+    {
+        var date = DateTime.Parse(x.date);
+        var month = date.Month;
+        return new { x.amount, month };
+    });
+    var dic = new Dictionary<int, double>();
+    foreach (var a in ann)
+    {
+        if (dic.ContainsKey(a.month))
+        {
+            dic[a.month] += a.amount;
+        }
+        else
+        {
+            dic.Add(a.month, a.amount);
         }
     }
-</table>
+    var values = new List<double>();
+    var area = new List<double>();
+    for (int index = 0; index < months.Length; index++)
+    {
+        var month = months[index];
+
+        double value;
+        dic.TryGetValue(index + 1, out value);
+
+        values.Add(-value);
+    }
+    if (tag.Key.name != "Auto")
+    {
+
+        for (int index = DateTime.Now.Month - 1; index < months.Length; index++)
+        {
+            var average = values.Take(DateTime.Now.Month - 1).Average();
+            if (Math.Abs(values[index]) < 0.5)
+            {
+                values[index] = average;
+            }
+        }
+    }
+
+    for (int index = 0; index < values.Count; index++)
+    {
+        if (index == 0)
+        {
+            area.Add(values[index]);
+        }
+        else
+        {
+            area.Add(values[index] + area[index - 1]);
+        }
+    }
+
+    Random rand = new Random();
+    var backgroundColor = rand.Next(256) + "," + rand.Next(256) + "," + rand.Next(256);
+    var dataset = @"{
+                label: '" + @tag.Key.name + @"',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(" + backgroundColor + @",0.4)',
+                borderColor: 'rgba(" + backgroundColor + @",1)',
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: 'rgba(" + backgroundColor + @",1)',
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 1,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgba(" + backgroundColor + @",1)',
+                pointHoverBorderColor: 'rgba(220,220,220,1)',
+                pointHoverBorderWidth: 2,
+                pointRadius: 1,
+                pointHitRadius: 10,
+                data: [" + string.Join(",", values) + @"]}";
+    var areaset = @"{
+                label: '" + @tag.Key.name + @"',
+                fill: false,
+                lineTension: 0.1,
+                backgroundColor: 'rgba(" + backgroundColor + @",0.4)',
+                borderColor: 'rgba(" + backgroundColor + @",1)',
+                borderCapStyle: 'butt',
+                borderDash: [],
+                borderDashOffset: 0.0,
+                borderJoinStyle: 'miter',
+                pointBorderColor: 'rgba(" + backgroundColor + @",1)',
+                pointBackgroundColor: '#fff',
+                pointBorderWidth: 1,
+                pointHoverRadius: 5,
+                pointHoverBackgroundColor: 'rgba(" + backgroundColor + @",1)',
+                pointHoverBorderColor: 'rgba(220,220,220,1)',
+                pointHoverBorderWidth: 2,
+                pointRadius: 1,
+                pointHitRadius: 10,
+                data: [" + string.Join(",", area) + @"]}";
+    datasets.Add(dataset);
+    areasets.Add(areaset);
+}
+
+
+@Scripts.Render("~/bundles/chartjs")
+
+
+
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        var labels = [
+            "January", "February", "March", "April", "May", "June", "July", "August", "September",
+            "October", "November", "Dicember"
+        ];
+        var data = {
+            labels: labels,
+            datasets: [
+                @Html.Raw(string.Join(",",datasets))
+            ]
+        };
+        var ctx = document.getElementById("myChart");
+        Chart.Line(ctx, {
+            data: data,
+            options: {}
+        });
+        var area = {
+            labels: labels,
+            datasets: [
+                @Html.Raw(string.Join(",",areasets))
+            ]
+        };
+        var ctx = document.getElementById("myAreas");
+        Chart.Line(ctx, {
+            data: area,
+            options: {}
+        });
+    });
+</script>
+
+<canvas id="myChart" width="400" height="400"></canvas>
+<canvas id="myAreas" width="400" height="400"></canvas>
+

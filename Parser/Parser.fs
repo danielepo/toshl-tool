@@ -10,7 +10,6 @@ let loadMovimenti path (file:Stream) getIgnored=
     file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
-    Threading.Thread.CurrentThread.CurrentUICulture <- it
 
     let rules str = Ignored.Load(path + "MappingRules.csv")  |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = str ))
 
