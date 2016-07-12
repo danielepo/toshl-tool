@@ -84,6 +84,7 @@ let movimentiVm path file getIgnored =
 
 let Movimenti path file=
     movimentiVm path file false
+
 let Ignorati path file=
      movimentiVm path file true
 

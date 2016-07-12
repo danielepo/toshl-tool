@@ -16,6 +16,7 @@
         };
     var datasets = new List<string>();
     var areasets = new List<string>();
+    var entries = new Dictionary<string, List<double>>();
 }
 @foreach (var tag in Model.taggedEntries)
 {
@@ -117,6 +118,8 @@
                 data: [" + string.Join(",", area) + @"]}";
     datasets.Add(dataset);
     areasets.Add(areaset);
+
+    entries.Add(tag.Key.name, area);
 }
 
 
@@ -125,7 +128,22 @@
 
 
 <script type="text/javascript">
+
+        var Value = function(val){
+            this.number = ko.observable(val);
+        }
+        
+        var Entry = function (tag, values) {
+            this.tag = tag;
+            this.entries = values;
+        }
+        var VM = function (entries) {
+            this.entries = entries;
+        }
+        @Html.Raw("var vm = new VM(["+string.Join(",",entries.Select(e => "new Entry('"+e.Key+"',["+string.Join(",",e.Value.Select(v => "new Value("+v+")"))+"])"))+"]);")
     jQuery(document).ready(function () {
+
+        ko.applyBindings(vm);
         var labels = [
             "January", "February", "March", "April", "May", "June", "July", "August", "September",
             "October", "November", "Dicember"
