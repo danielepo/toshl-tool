@@ -25,10 +25,16 @@ namespace WebApp.Controllers
             //  .. per ogni tag poter indicare il tipo ricorrenza (o i mesi in cui ricorrere)
             var startDate = new DateTime(2016,1,1,0,0,0);
 
+            if (Session["vm"] != null)
+            {
+                return View((Graphic)Session["vm"]);
+            }
+
             var vm = new Graphic
             {
                 taggedEntries = ToshClient.GetEntriesByTag(startDate, startDate.AddYears(1))
             };
+            Session["vm"] = vm;
             return View(vm);
         }
     }

@@ -16,6 +16,9 @@
         };
     var datasets = new List<string>();
     var areasets = new List<string>();
+    var arrayForDataset = new List<string>();
+    var  arrayForArea = new List<string>();
+    var entries = new Dictionary<string, List<double>>();
 }
 @foreach (var tag in Model.taggedEntries)
 {
@@ -75,6 +78,8 @@
 
     Random rand = new Random();
     var backgroundColor = rand.Next(256) + "," + rand.Next(256) + "," + rand.Next(256);
+    arrayForDataset.Add( "data1['" + @tag.Key.name + "']=[" + string.Join(",", "ko.observable(" + values + ")") + "];");
+    arrayForArea.Add("area1['" + @tag.Key.name + "]'=[" + string.Join(",", "ko.observable(" + area + ")") + "];");
     var dataset = @"{
                 label: '" + @tag.Key.name + @"',
                 fill: false,
@@ -94,7 +99,7 @@
                 pointHoverBorderWidth: 2,
                 pointRadius: 1,
                 pointHitRadius: 10,
-                data: [" + string.Join(",", values) + @"]}";
+                data: data1['" + @tag.Key.name + "']}\n";
     var areaset = @"{
                 label: '" + @tag.Key.name + @"',
                 fill: false,
@@ -114,9 +119,11 @@
                 pointHoverBorderWidth: 2,
                 pointRadius: 1,
                 pointHitRadius: 10,
-                data: [" + string.Join(",", area) + @"]}";
+                data: area1['" + @tag.Key.name + "']}\n";
     datasets.Add(dataset);
     areasets.Add(areaset);
+
+    entries.Add(tag.Key.name, area);
 }
 
 
@@ -125,36 +132,38 @@
 
 
 <script type="text/javascript">
-    jQuery(document).ready(function () {
-        var labels = [
-            "January", "February", "March", "April", "May", "June", "July", "August", "September",
-            "October", "November", "Dicember"
-        ];
-        var data = {
+
+    var data1 = [];
+    var area1 = [];
+
+    var labels = [
+        "January", "February", "March", "April", "May", "June", "July", "August", "September",
+        "October", "November", "Dicember"
+    ];
+    var VM = function () {
+        this.Data = {
             labels: labels,
             datasets: [
                 @Html.Raw(string.Join(",",datasets))
             ]
         };
-        var ctx = document.getElementById("myChart");
-        Chart.Line(ctx, {
-            data: data,
-            options: {}
-        });
-        var area = {
+        this.Area = {
             labels: labels,
             datasets: [
                 @Html.Raw(string.Join(",",areasets))
             ]
         };
-        var ctx = document.getElementById("myAreas");
-        Chart.Line(ctx, {
-            data: area,
-            options: {}
-        });
+    }
+    @Html.Raw(string.Join("\n", arrayForArea));
+    @Html.Raw(string.Join("\n", arrayForDataset));
+    @*//@Html.Raw("var vm = new VM(["+string.Join(",",entries.Select(e => "new Entry('"+e.Key+"',["+string.Join(",",e.Value.Select(v => "new Value("+v+")"))+"])"))+"]);")*@
+    var vm = new VM();
+    jQuery(document).ready(function () {
+
+        ko.applyBindings(vm);
+
     });
 </script>
-
-<canvas id="myChart" width="400" height="400"></canvas>
-<canvas id="myAreas" width="400" height="400"></canvas>
+<canvas id="myChart"  data-bind="chart: { type: 'line', data: Area, options: { observeChanges: true} }"></canvas>
+<canvas id="myAreas"  data-bind="chart: { type: 'line', data: Data, options: { observeChanges: true} }"></canvas>
 

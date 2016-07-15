@@ -1,0 +1,28 @@
+<html>
+    <head>
+        <script src="knockout-3.4.0.js"></script>
+    </head>
+    <body>
+        <div data-bind="foreach: name">
+        <p>First name: <input type="text" data-bind="value: $data.number"/></p>
+        <p>repeat: <span" data-bind="text: $data.number()"></span></p>
+</div>
+        <script type="text/javascript">
+            var arr = [2,3,2];
+            var obj = function(dumb){
+                this.number = ko.observable(dumb);
+            }
+            function ViewModel(){
+                self = this;
+                var obArr = []
+                for(var i = 0;i<arr.length;i++){
+                    obArr.push(new obj(arr[i]));
+                }
+                self.name = ko.observableArray(obArr);
+            }
+            var vm = new ViewModel()
+            ko.applyBindings(vm);
+            
+        </script>
+        <!--<p data-bind="text: name"></p></body>-->
+</html>
