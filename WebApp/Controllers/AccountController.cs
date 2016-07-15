@@ -70,7 +70,16 @@ namespace WebApp.Controllers
             {
                 return View(model);
             }
+            var user = await UserManager.FindByNameAsync(model.Email);
+            if (user != null)
+            {
 
+                if (user.Email != "dnl.pozzobon@gmail.com")
+                {
+                    ViewBag.errorMessage = "Sorry the site is under construction and cannot be used.";
+                    return View("Error");
+                }
+            }
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
@@ -150,6 +159,13 @@ namespace WebApp.Controllers
             if (ModelState.IsValid)
             {
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+
+                if (user.Email != "dnl.pozzobon@gmail.com")
+                {
+                    ViewBag.errorMessage = "Sorry the site is under construction and cannot be used.";
+                    
+                    return View("Error");
+                }
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {

@@ -11,6 +11,7 @@ namespace WebApp.Controllers
     {
        public IEnumerable<ToshClient.TaggedEntry> taggedEntries { get; set; }
     }
+    [Authorize]
     [RequireHttps]
     public class DashboardController : Controller
     {

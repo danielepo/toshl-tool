@@ -2,7 +2,7 @@
 
 namespace WebApp.Controllers
 {
-
+    [Authorize]
     [RequireHttps]
     public class HomeController : Controller
     {

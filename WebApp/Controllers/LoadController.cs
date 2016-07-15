@@ -14,6 +14,7 @@ namespace WebApp.Controllers
         public List<SelectListItem> Rules;
         public List<SelectListItem> Tags;
     }
+    [Authorize()]
     [RequireHttps]
     public class LoadController : Controller
     {
