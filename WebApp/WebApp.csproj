@@ -212,6 +212,8 @@
     <Content Include="Scripts\jquery-1.11.3.js" />
     <Content Include="Scripts\jquery-1.11.3.min.js" />
     <Content Include="Scripts\jquery-1.11.3.min.map" />
+    <None Include="Properties\PublishProfiles\expenses-analyzer - FTP.pubxml" />
+    <None Include="Properties\PublishProfiles\expenses-analyzer - Web Deploy.pubxml" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <None Include="Scripts\jquery-1.11.3-vsdoc.js" />
     <Content Include="Scripts\jquery.validate.js" />
