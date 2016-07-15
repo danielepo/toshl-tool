@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 using Microsoft.FSharp.Collections;
 using Microsoft.FSharp.Core;
@@ -32,7 +33,8 @@ namespace WebApp.Controllers
 
             var vm = new Graphic
             {
-                taggedEntries = ToshClient.GetEntriesByTag(startDate, startDate.AddYears(1))
+                taggedEntries = 
+                    ToshClient.GetEntriesByTag(startDate, startDate.AddYears(1)).OrderBy(o => o.Key.name)
             };
             Session["vm"] = vm;
             return View(vm);

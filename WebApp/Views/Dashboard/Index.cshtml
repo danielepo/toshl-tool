@@ -2,9 +2,6 @@
     ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@using System.Globalization
-@using System.Threading
-@using Microsoft.Owin.Security.Provider
 @model WebApp.Controllers.Graphic
 <h2>title</h2>
 
@@ -14,10 +11,7 @@
             "January", "February", "March", "April", "May", "June", "July", "August", "September",
             "October", "November", "Dicember"
         };
-    var datasets = new List<string>();
-    var areasets = new List<string>();
-    var arrayForDataset = new List<string>();
-    var arrayForArea = new List<string>();
+
     var entries = new Dictionary<string, List<double>>();
 }
 @foreach (var tag in Model.taggedEntries)
@@ -41,11 +35,8 @@
         }
     }
     var values = new List<double>();
-    var area = new List<double>();
     for (int index = 0; index < months.Length; index++)
     {
-        var month = months[index];
-
         double value;
         dic.TryGetValue(index + 1, out value);
 
@@ -64,92 +55,34 @@
         }
     }
 
-    for (int index = 0; index < values.Count; index++)
-    {
-        if (index == 0)
-        {
-            area.Add(values[index]);
-        }
-        else
-        {
-            area.Add(values[index] + area[index - 1]);
-        }
-    }
-
-    Random rand = new Random();
-    var backgroundColor = rand.Next(256) + "," + rand.Next(256) + "," + rand.Next(256);
-    arrayForDataset.Add("data1['" + @tag.Key.name + "']=[" + string.Join(",", "ko.observable(" + values + ")") + "];");
-    arrayForArea.Add("area1['" + @tag.Key.name + "]'=[" + string.Join(",", "ko.observable(" + area + ")") + "];");
-    var dataset = @"{
-                label: '" + @tag.Key.name + @"',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(" + backgroundColor + @",0.4)',
-                borderColor: 'rgba(" + backgroundColor + @",1)',
-                borderCapStyle: 'butt',
-                borderDash: [],
-                borderDashOffset: 0.0,
-                borderJoinStyle: 'miter',
-                pointBorderColor: 'rgba(" + backgroundColor + @",1)',
-                pointBackgroundColor: '#fff',
-                pointBorderWidth: 1,
-                pointHoverRadius: 5,
-                pointHoverBackgroundColor: 'rgba(" + backgroundColor + @",1)',
-                pointHoverBorderColor: 'rgba(220,220,220,1)',
-                pointHoverBorderWidth: 2,
-                pointRadius: 1,
-                pointHitRadius: 10,
-                data: data1['" + @tag.Key.name + "']}\n";
-    var areaset = @"{
-                label: '" + @tag.Key.name + @"',
-                fill: false,
-                lineTension: 0.1,
-                backgroundColor: 'rgba(" + backgroundColor + @",0.4)',
-                borderColor: 'rgba(" + backgroundColor + @",1)',
-                borderCapStyle: 'butt',
-                borderDash: [],
-                borderDashOffset: 0.0,
-                borderJoinStyle: 'miter',
-                pointBorderColor: 'rgba(" + backgroundColor + @",1)',
-                pointBackgroundColor: '#fff',
-                pointBorderWidth: 1,
-                pointHoverRadius: 5,
-                pointHoverBackgroundColor: 'rgba(" + backgroundColor + @",1)',
-                pointHoverBorderColor: 'rgba(220,220,220,1)',
-                pointHoverBorderWidth: 2,
-                pointRadius: 1,
-                pointHitRadius: 10,
-                data: area1['" + @tag.Key.name + "']}\n";
-    datasets.Add(dataset);
-    areasets.Add(areaset);
-
     entries.Add(tag.Key.name, values);
 }
 
 
 @Scripts.Render("~/bundles/chartjs")
 
-
-
 <script type="text/javascript">
 
     var data1 = [];
     var area1 = [];
-
-    var labels = [
-        "January", "February", "March", "April", "May", "June", "July", "August", "September",
-        "October", "November", "Dicember"
-    ];
     var Value = function (val) {
-        this.number = ko.observable(val);
+        
+        this.number = ko.observable(Math.round(val));
     }
 
     var Entry = function (tag, values) {
         this.tag = tag;
         this.entries = values;
+        this.total = ko.computed(function() {
+            return values.reduce(function(prev, curr) { return prev + Number.parseFloat(curr.number()); }, 0);
+        });
     }
     var VM = function (entries) {
         var self = this;
+        self.labels = [
+           "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+           "Oct", "Nov", "Dic"
+        ];
         self.entries = entries;
         var colors = [];
         var objectGenerator = function (arr, tag) {
@@ -186,55 +119,40 @@
             for (var j = 0; j < self.entries.length; j++) {
                 var arr = [];
                 for (var i = 0; i < 12; i++) {
-                    arr.push(self.entries[j].entries[i].number);
+                    
+                    var val = Number.parseFloat(self.entries[j].entries[i].number());
+                    arr.push(val);
                 }
-                //debugger;
                 object.push(objectGenerator(arr, self.entries[j].tag));
 
             }
-            //debugger;
             return object;
         });
 
         self.dataset2 = ko.computed(function () {
             var object = [];
             for (var j = 0; j < self.entries.length; j++) {
-                var arr = [self.entries[j].entries[0].number()];
+                var val = Number.parseFloat(self.entries[j].entries[0].number());
+
+                var arr = [val];
                 for (var i = 1; i < 12; i++) {
-                    arr.push(self.entries[j].entries[i].number() + arr[i - 1]);
+                    val = Number.parseFloat(self.entries[j].entries[i].number());
+                    arr.push(val + arr[i - 1]);
                 }
-                //debugger;
                 object.push(objectGenerator(arr, self.entries[j].tag));
             }
-            //debugger;
             return object;
         }).extend({ notify: 'always' });
         self.Data = {
-            labels: labels,
+            labels: self.labels,
             datasets: self.dataset1
         };
         self.Area = {
-            labels: labels,
+            labels: self.labels,
             datasets: self.dataset2
         };
     }
 
-    @*var VM = function () {
-        this.Data = {
-            labels: labels,
-            datasets: [
-                @Html.Raw(string.Join(",",datasets))
-            ]
-        };
-        this.Area = {
-            labels: labels,
-            datasets: [
-                @Html.Raw(string.Join(",",areasets))
-            ]
-        };
-    }*@
-    @*@Html.Raw(string.Join("\n", arrayForArea));*@
-    @*@Html.Raw(string.Join("\n", arrayForDataset));*@
     @Html.Raw("var vm = new VM(["+string.Join(",",entries.Select(e => "new Entry('"+e.Key+"',["+string.Join(",",e.Value.Select(v => "new Value("+v+")"))+"])"))+"]);")
 
     jQuery(document).ready(function () {
@@ -246,3 +164,27 @@
 <canvas id="myChart" data-bind="chart: { type: 'line', data: Area, options: { observeChanges: true} }"></canvas>
 <canvas id="myAreas" data-bind="chart: { type: 'line', data: Data, options: { observeChanges: true} }"></canvas>
 
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Tag</th>
+        <!-- ko foreach: labels-->
+        <th data-bind="text: $data"></th>
+        <!-- /ko -->
+        <th>Tot</th>
+    </tr>
+    </thead>
+    <tbody>
+        <!-- ko foreach: entries-->
+    <tr>
+        <td data-bind="text: tag"></td>
+        <!-- ko foreach: entries-->
+        <td>
+            <input type="number" data-bind="value: number" style="width: 50px"/>
+        </td>
+        <!-- /ko -->
+        <td data-bind="text: total"></td>
+    </tr>
+        <!-- /ko -->
+    </tbody>
+</table>
