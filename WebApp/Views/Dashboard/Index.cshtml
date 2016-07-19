@@ -7,14 +7,13 @@
 
 @{
     var months = new[]
-        {
-            "January", "February", "March", "April", "May", "June", "July", "August", "September",
-            "October", "November", "Dicember"
-        };
+    {
+        "January", "February", "March", "April", "May", "June", "July", "August", "September",
+        "October", "November", "Dicember"
+    };
 
     var entries = new Dictionary<string, List<double>>();
     var income = Model.taggedEntries.Select(tag => tag.Value.Where(x => x.amount > 0).Select(x => x.amount).Sum()).Sum();
-
 }
 @foreach (var tag in Model.taggedEntries)
 {
@@ -23,7 +22,7 @@
     {
         var date = DateTime.Parse(x.date);
         var month = date.Month;
-        return new { x.amount, month };
+        return new {x.amount, month};
     });
     var dic = new Dictionary<int, double>();
     foreach (var a in ann)
@@ -43,11 +42,10 @@
         double value;
         dic.TryGetValue(index + 1, out value);
 
-        values.Add(-value);
+        values.Add(value);
     }
     if (tag.Key.name != "Auto")
     {
-
         for (int index = DateTime.Now.Month - 1; index < months.Length; index++)
         {
             var average = values.Take(DateTime.Now.Month - 1).Average();
@@ -68,13 +66,13 @@
 
     var data1 = [];
     var area1 = [];
-    var Value = function (val) {
-
+    var Value = function(val) {
         this.number = ko.observable(Math.round(val));
     }
 
-    var Entry = function (tag, values) {
+    var Entry = function(tag, values) {
 
+        var self = this;
         this.tag = tag;
         this.entries = values;
 
@@ -82,45 +80,51 @@
         this.total = ko.computed(function() {
             return values.reduce(function(prev, curr) { return prev + Number.parseFloat(curr.number()); }, 0);
         });
-    }
-    var VM = function (entries) {
 
+        self.entryType = ko.computed(function() {
+            return self.total() > 0 ? "success" : "danger";
+        });
+    }
+    var VM = function(entries) {
 
 
         var self = this;
 
-        
 
         self.labels = [
-           "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-           "Oct", "Nov", "Dic"
+            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+            "Oct", "Nov", "Dic"
         ];
         self.entries = entries;
 
 
-        self.toalIncome = ko.computed(function () {
-            self.entries.reduce(function (prev, curr) {
-                if (total > 0)
-                    return prev + curr.total;
-                else
-                    return prev;
-            }, 0);
+        self.toalIncome = ko.computed(function() {
+            return self.entries.reduce(function(prev, curr) {
+                    if (curr.total() > 0)
+                        return prev + curr.total();
+                    else
+                        return prev;
+                },
+                0);
         });
-        self.toalExpence = ko.computed(function () {
-            self.entries.reduce(function (prev, curr) {
-                if (total < 0)
-                    return prev + curr.total;
-                else
-                    return prev;
-            }, 0);
+        self.toalExpence = ko.computed(function() {
+            return self.entries.reduce(function(prev, curr) {
+                    if (curr.total() <= 0)
+                        return prev + curr.total();
+                    else
+                        return prev;
+                },
+                0);
         });
         self.remaining = ko.computed(function () {
-            return self.totalIncome + self.totalExpence;
+            return self.toalIncome() + self.toalExpence();
+        });
+        self.profitStatus = ko.computed(function() {
+            return self.remaining() > 0 ? "success" : "danger";
         });
 
-
         var colors = [];
-        var objectGenerator = function (arr, tag) {
+        var objectGenerator = function(arr, tag) {
             var red;
             var green;
             var blue;
@@ -149,16 +153,16 @@
                 data: arr
             };
         }
-        self.dataset1 = ko.computed(function () {
+        self.dataset1 = ko.computed(function() {
             var object = [];
             for (var j = 0; j < self.entries.length; j++) {
                 var arr = [];
                 for (var i = 0; i < 12; i++) {
 
                     var val = Number.parseFloat(self.entries[j].entries[i].number());
-                    if(val <= 0)
+                    if (val >= 0)
                         val = 0;
-                    arr.push(val);
+                    arr.push(-val);
                 }
                 object.push(objectGenerator(arr, self.entries[j].tag));
 
@@ -166,24 +170,25 @@
             return object;
         });
 
-        self.dataset2 = ko.computed(function () {
-            var object = [];
-            for (var j = 0; j < self.entries.length; j++) {
-                
-                var arr = [];
-                for (var i = 0; i < 12; i++) {
-                    val = Number.parseFloat(self.entries[j].entries[i].number());
-                    if(val <= 0)
-                        val = 0;
-                    if(i === 0)
-                        arr.push(val);
-                    else
-                        arr.push(val + arr[i - 1]);
+        self.dataset2 = ko.computed(function() {
+                var object = [];
+                for (var j = 0; j < self.entries.length; j++) {
+
+                    var arr = [];
+                    for (var i = 0; i < 12; i++) {
+                        var val = Number.parseFloat(self.entries[j].entries[i].number());
+                        if (val >= 0)
+                            val = 0;
+                        if (i === 0)
+                            arr.push(-val);
+                        else
+                            arr.push(-val + arr[i - 1]);
+                    }
+                    object.push(objectGenerator(arr, self.entries[j].tag));
                 }
-                object.push(objectGenerator(arr, self.entries[j].tag));
-            }
-            return object;
-        }).extend({ notify: 'always' });
+                return object;
+            })
+            .extend({ notify: 'always' });
         self.Data = {
             labels: self.labels,
             datasets: self.dataset1
@@ -192,41 +197,50 @@
             labels: self.labels,
             datasets: self.dataset2
         };
+
+
     }
 
-    @Html.Raw("var vm = new VM(["+string.Join(",",entries.Select(e => "new Entry('"+e.Key+"',["+string.Join(",",e.Value.Select(v => "new Value("+v+")"))+"])"))+"]);")
+    @Html.Raw("var vm = new VM([" + string.Join(",", entries.Select(e => "new Entry('" + e.Key + "',[" + string.Join(",", e.Value.Select(v => "new Value(" + v + ")")) + "])")) + "]);")
 
-    jQuery(document).ready(function () {
+    jQuery(document)
+        .ready(function() {
 
-        ko.applyBindings(vm);
+            ko.applyBindings(vm);
 
-    });
+        });
 </script>
 <canvas id="myChart" data-bind="chart: { type: 'line', data: Area, options: { observeChanges: true} }"></canvas>
 <canvas id="myAreas" data-bind="chart: { type: 'line', data: Data, options: { observeChanges: true} }"></canvas>
 
 <table class="table table-striped">
     <thead>
-        <tr>
-            <th>Tag</th>
-            <!-- ko foreach: labels-->
-            <th data-bind="text: $data"></th>
-            <!-- /ko -->
-            <th>Tot</th>
-        </tr>
+    <tr>
+        <th>Tag</th>
+        <!-- ko foreach: labels-->
+        <th data-bind="text: $data"></th>
+        <!-- /ko -->
+        <th>Tot</th>
+    </tr>
     </thead>
     <tbody>
+    <!-- ko foreach: entries-->
+    <tr data-bind="css: entryType">
+        <td data-bind="text: tag"></td>
         <!-- ko foreach: entries-->
-        <tr>
-            <td data-bind="text: tag"></td>
-            <!-- ko foreach: entries-->
-            <td>
-                <input type="number" data-bind="value: number" style="width: 50px" />
-            </td>
-            <!-- /ko -->
-            <td data-bind="text: total"></td>
-        </tr>
+        <td>
+            <input type="number" data-bind="value: number" style="width: 50px"/>
+        </td>
         <!-- /ko -->
-        <tr><td colspan="13"></td><td data-bind="text:income"></td></tr>
+        <td data-bind="text: total"></td>
+    </tr>
+    <!-- /ko -->
+
+    <tr data-bind="css: profitStatus">
+        <td colspan="13">Total Income</td><td data-bind="text:toalIncome"></td>
+    </tr>
+    <tr data-bind="css: profitStatus">
+        <td colspan="13">Total Expence</td><td data-bind="text:toalExpence "></td>
+    </tr>
     </tbody>
 </table>
