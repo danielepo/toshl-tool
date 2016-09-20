@@ -245,31 +245,44 @@ let excecuteRequest (request : IRestRequest) =
     | HttpStatusCode.Created -> Created
     | _ -> Error
 
-let rec gew page (link:string) deserializer= 
-    let attr = if link.Contains("?") then sprintf "&page=%d" page else sprintf "?page=%d" page 
-    let resource = sprintf "%s%s" link attr
-    getRequest resource Method.GET
-    |> excecuteRequest
-    |> function
-        | PagedContent (p,c) -> deserializer c :: gew p link deserializer
-        | Content c -> deserializer c :: []
-        | _  -> []
+let getByLink link deserializer =
+    let rec gew page (link:string) = 
+        let attr = if link.Contains("?") then sprintf "&page=%d" page else sprintf "?page=%d" page 
+        let resource = sprintf "%s%s" link attr
+        getRequest resource Method.GET
+        |> excecuteRequest
+        |> function
+            | PagedContent (p,c) -> deserializer c :: gew p link
+            | Content c -> deserializer c :: []
+            | _  -> []
+    gew 0 link
+
+let serializeToFile file obj = 
+    let serial = JsonConvert.SerializeObject (obj)
+    System.IO.File.AppendAllText(file,serial)
 
 let getTags() = 
     let deserializer c = JsonConvert.DeserializeObject<Tag list>(c)
-    gew 0 "/tags" deserializer |> List.concat
+    let tags = getByLink "/tags" deserializer |> List.concat
+    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/tags.txt" tags
+    tags
 
 let GetTags() = 
     getTags()
 
+
 let getCategories() = 
     let deserializer c = JsonConvert.DeserializeObject<Category list>(c)
-    gew 0 "/categories" deserializer |> List.concat
+    let categories = getByLink "/categories" deserializer |> List.concat
+    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/categories.txt" categories
+    categories
 
 let getEntries (f:DateTime) (t:DateTime) = 
     let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
     let deserializer c = JsonConvert.DeserializeObject<Entry list>(c)
-    gew 0 link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
+    let entries = getByLink link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
+    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/entries" entries
+    entries
 
 type TaggedEntry = {
     Key: Tag
@@ -301,9 +314,12 @@ let getAccounts() =
         | _  -> None
 
 let GetAccounts() = 
-    match getAccounts() with
-    | Some x -> x
-    | None -> []
+    let accounts = 
+        match getAccounts() with
+        | Some x -> x
+        | None -> []
+    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/accounts" accounts
+    accounts
 
 let setEntry (entry : Entry) = 
     let request = getRequest "/entries" Method.POST
