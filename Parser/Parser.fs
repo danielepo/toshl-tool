@@ -55,12 +55,12 @@ type CatType =
     | Income
 
 type ReportVm ={
-    Ammount : double; 
-    Date: DateTime; 
-    Description: string; 
-    Causale: int; 
-    Type: CatType; 
-    Tagged: bool;
+    Ammount : double
+    Date: DateTime
+    Description: string
+    Causale: int 
+    Type: CatType
+    Tagged: bool
     Tag:int}
 
 type RuleType = 

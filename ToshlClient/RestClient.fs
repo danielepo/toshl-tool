@@ -258,13 +258,14 @@ let getByLink link deserializer =
     gew 0 link
 
 let serializeToFile file obj = 
+    let path = sprintf "%s%s" (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)) file
     let serial = JsonConvert.SerializeObject (obj)
-    System.IO.File.AppendAllText(file,serial)
+    System.IO.File.AppendAllText(path,serial)
 
 let getTags() = 
     let deserializer c = JsonConvert.DeserializeObject<Tag list>(c)
     let tags = getByLink "/tags" deserializer |> List.concat
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/tags.txt" tags
+    serializeToFile "\\tags.json" tags
     tags
 
 let GetTags() = 
@@ -274,14 +275,14 @@ let GetTags() =
 let getCategories() = 
     let deserializer c = JsonConvert.DeserializeObject<Category list>(c)
     let categories = getByLink "/categories" deserializer |> List.concat
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/categories.txt" categories
+    serializeToFile "\\categories.json" categories
     categories
 
 let getEntries (f:DateTime) (t:DateTime) = 
     let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
     let deserializer c = JsonConvert.DeserializeObject<Entry list>(c)
     let entries = getByLink link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/entries" entries
+    serializeToFile "\\entries.json" entries
     entries
 
 type TaggedEntry = {
@@ -318,7 +319,7 @@ let GetAccounts() =
         match getAccounts() with
         | Some x -> x
         | None -> []
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/accounts" accounts
+    serializeToFile "\\accounts.json" accounts
     accounts
 
 let setEntry (entry : Entry) = 
