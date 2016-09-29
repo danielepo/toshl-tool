@@ -6,6 +6,7 @@ open RestSharp
 open System
 open System.Net
 open System.Linq
+open System.IO
 
 type TagCount = 
     { entries : int
@@ -258,31 +259,53 @@ let getByLink link deserializer =
     gew 0 link
 
 let serializeToFile file obj = 
-    let serial = JsonConvert.SerializeObject (obj)
-    System.IO.File.AppendAllText(file,serial)
+    ()
+//    let path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\" + file
+//    let serial = JsonConvert.SerializeObject (obj)
+//    System.IO.File.AppendAllText(path,serial)
 
+let tryGetFile file =
+    None
+//    let path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\" + file
+//    match File.Exists(path) with
+//    | true -> Some (System.IO.File.ReadAllText(path))
+//    | false -> None
+    
 let getTags() = 
+    let tagsFile = "tags.json"
     let deserializer c = JsonConvert.DeserializeObject<Tag list>(c)
-    let tags = getByLink "/tags" deserializer |> List.concat
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/tags.txt" tags
-    tags
+    match tryGetFile tagsFile with
+    | Some file -> deserializer file
+    | None ->
+        let tags = getByLink "/tags" deserializer |> List.concat
+        serializeToFile tagsFile tags
+        tags
 
 let GetTags() = 
     getTags()
 
 
-let getCategories() = 
+let getCategories() =
+    let catFile = "categories.json"
     let deserializer c = JsonConvert.DeserializeObject<Category list>(c)
-    let categories = getByLink "/categories" deserializer |> List.concat
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/categories.txt" categories
-    categories
+    
+    match tryGetFile catFile with
+    | Some file -> deserializer file
+    | None ->
+        let categories = getByLink "/categories" deserializer |> List.concat
+        serializeToFile catFile categories
+        categories
 
 let getEntries (f:DateTime) (t:DateTime) = 
-    let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
+    let entriesFile = "entries.json"
     let deserializer c = JsonConvert.DeserializeObject<Entry list>(c)
-    let entries = getByLink link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/entries" entries
-    entries
+    match tryGetFile entriesFile with
+    | Some file -> deserializer file
+    | None ->
+        let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
+        let entries = getByLink link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
+        serializeToFile entriesFile entries
+        entries
 
 type TaggedEntry = {
     Key: Tag
@@ -306,19 +329,26 @@ let GetEntriesByTag (f:DateTime) (t:DateTime) =
 
 
 let getAccounts() = 
+    let serializer c = JsonConvert.DeserializeObject<Account list>(c)
     getRequest "/accounts" Method.GET
     |> excecuteRequest
     |> function
-        | PagedContent (p,c) -> Some (JsonConvert.DeserializeObject<Account list>(c))
-        | Content c -> Some (JsonConvert.DeserializeObject<Account list>(c))
+        | PagedContent (p,c) -> Some (serializer c)
+        | Content c -> Some (serializer c)
         | _  -> None
 
 let GetAccounts() = 
+    let accountsFile = "accounts.json"
+    let deserializer c = JsonConvert.DeserializeObject<Account list>(c)
+
+    match tryGetFile accountsFile with
+    | Some file -> deserializer file
+    | None ->
     let accounts = 
         match getAccounts() with
         | Some x -> x
         | None -> []
-    serializeToFile "C:/Users/d.pozzobon/Source/Repos/Toshl Loader/LoadToToshl/bin/Debug/accounts" accounts
+    serializeToFile accountsFile accounts
     accounts
 
 let setEntry (entry : Entry) = 
