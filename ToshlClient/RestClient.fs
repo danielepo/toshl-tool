@@ -161,15 +161,11 @@ let init() = //()
     else
         ()
 
-
-
 type Link = 
     | First of int
     | Next of int
     | Last of int
     | Unknown
-
-
 
 type LinkRecord = 
     {First: int; Next: int option; Last: int}
