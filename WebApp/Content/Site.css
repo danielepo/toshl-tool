@@ -22,3 +22,10 @@ select,
 textarea {
     max-width: 280px;
 }
+
+.number {
+    text-align:right;
+}
+tfoot{
+    border-top:solid thick;
+}
