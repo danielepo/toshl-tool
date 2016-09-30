@@ -5,3 +5,4 @@
 *.TMP
 *.DotSettings.user
 WebApp/settings.config
+WebApp/connectionStrings.config
