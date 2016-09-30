@@ -274,7 +274,7 @@ let getTags() =
     | Some file -> deserializer file
     | None ->
     let tags = getByLink "/tags" deserializer |> List.concat
-        serializeToFile tagsFile tags
+    serializeToFile tagsFile tags
     tags
 
 let GetTags() = 
@@ -289,7 +289,7 @@ let getCategories() =
     | Some file -> deserializer file
     | None ->
     let categories = getByLink "/categories" deserializer |> List.concat
-        serializeToFile catFile categories
+    serializeToFile catFile categories
     categories
 
 let getEntries (f:DateTime) (t:DateTime) = 
@@ -300,7 +300,7 @@ let getEntries (f:DateTime) (t:DateTime) =
     | None ->
     let link = sprintf "/entries?from=%s&to=%s" (f.ToString("yyyy-MM-dd")) (t.ToString("yyyy-MM-dd"))
     let entries = getByLink link deserializer |> List.concat |> List.sortBy (fun x -> x.date)
-        serializeToFile entriesFile entries
+    serializeToFile entriesFile entries
     entries
 
 type TaggedEntry = {
