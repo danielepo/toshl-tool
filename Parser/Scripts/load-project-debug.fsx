@@ -3,3 +3,5 @@
 #load "load-references-debug.fsx"
 #load "../Types.fs"
       "../Parser.fs"
+      "../MovimentiModelBuilder.fs"
+      "../TagsManager.fs"

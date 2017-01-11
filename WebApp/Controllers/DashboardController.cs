@@ -9,7 +9,7 @@ namespace WebApp.Controllers
 {
     public class Graphic
     {
-       public IEnumerable<ToshClient.TaggedEntry> taggedEntries { get; set; }
+       public IEnumerable<ToshlTypes.TaggedEntry> taggedEntries { get; set; }
     }
     [Authorize]
     [RequireHttps]

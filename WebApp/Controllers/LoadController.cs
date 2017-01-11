@@ -9,8 +9,8 @@ namespace WebApp.Controllers
     public class HomeVM
     {
         public List<SelectListItem> Accounts;
-        public List<Parser.ReportVm> IgnoredReports;
-        public List<Parser.ReportVm> Reports;
+        public List<MovimentiModelBuilder.ReportVm> IgnoredReports;
+        public List<MovimentiModelBuilder.ReportVm> Reports;
         public List<SelectListItem> Rules;
         public List<SelectListItem> Tags;
     }
@@ -37,11 +37,11 @@ namespace WebApp.Controllers
             switch (rule)
             {
                 case "1":
-                    Parser.addRule(tag, start, path);
+                    TagsRuleManager.AddTagRule(tag, start, path);
                     break;
 
                 case "0":
-                    Parser.addIgnore(start, path);
+                    TagsRuleManager.AddIgnoreRule(start, path);
                     break;
             }
             if (Session[stream] != null)
@@ -89,20 +89,20 @@ namespace WebApp.Controllers
 
         private HomeVM BuildVMM()
         {
-            var Tags = new List<ToshClient.Tag>(ToshClient.GetTags());
-            var Accounts = new List<ToshClient.Account>(ToshClient.GetAccounts());
+            var Tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
+            var Accounts = new List<ToshlTypes.Account>(ToshClient.Entities.getAccounts());
             var homeVM = new HomeVM
             {
-                Reports = new List<Parser.ReportVm>(Parser.Movimenti(path, inputStream)),
-                IgnoredReports = new List<Parser.ReportVm>(Parser.Ignorati(path, inputStream)),
+                Reports = MovimentiModelBuilder.Movimenti(path, inputStream),
+                IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream),
                 Tags =
                     Tags.Where(x => !x.deleted)
                         .Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id })
                         .ToList(),
                 Rules = new List<SelectListItem>()
                 {
-                    new SelectListItem() {Text = "Ignore", Value = ((int) Parser.RuleType.Ignore).ToString()},
-                    new SelectListItem() {Text = "Tag", Value = ((int) Parser.RuleType.Tagged).ToString()}
+                    new SelectListItem() {Text = "Ignore", Value = ((int) MovimentiModelBuilder.RuleType.Ignore).ToString()},
+                    new SelectListItem() {Text = "Tag", Value = ((int) MovimentiModelBuilder.RuleType.Tagged).ToString()}
                 },
                 Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList()
             };
@@ -113,7 +113,7 @@ namespace WebApp.Controllers
 
     public class LoadVM
     {
-        public IEnumerable<ToshClient.Entry> error;
-        public IEnumerable<ToshClient.Entry> saved;
+        public IEnumerable<ToshlTypes.Entry> error;
+        public IEnumerable<ToshlTypes.Entry> saved;
     }
 }

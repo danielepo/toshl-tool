@@ -1,12 +1,11 @@
-﻿module Parser
-
+﻿module Parser 
 open System
 open Types
 open System.Globalization
 open System.IO
 
 
-let loadMovimenti path (file:Stream) getIgnored=
+let movimentiParser path (file:Stream) getIgnored=
     file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
@@ -41,8 +40,6 @@ let loadMovimenti path (file:Stream) getIgnored=
         let shouldGet s = 
             let (!!!) x = if getIgnored then x else not x
             not (isSaldo s) && !!! (isIgnored s)
-        
-        
 
         movimentiCsv.Rows 
         |> Seq.filter (fun x -> shouldGet x.``DESCRIZIONE OPERAZIONE``)
@@ -50,52 +47,4 @@ let loadMovimenti path (file:Stream) getIgnored=
 
     movimenti
 
-type CatType =
-    | Expence
-    | Income
 
-type ReportVm ={
-    Ammount : double
-    Date: DateTime
-    Description: string
-    Causale: int 
-    Type: CatType
-    Tagged: bool
-    Tag:int}
-
-type RuleType = 
-    | Ignore = 0
-    | Tagged = 1
-
-let movimentiVm path file getIgnored = 
-    let toVm (y:Record) t = { 
-        Ammount = y.Ammount; 
-        Date = y.Date; 
-        Description = y.Description; 
-        Causale = y.Causale; 
-        Type = t ;
-        Tagged = not (y.Tag = 0);
-        Tag = y.Tag} 
-    loadMovimenti path file getIgnored
-    |> Seq.map (fun x -> 
-        match x with
-        | Movement.Expence y -> toVm y CatType.Expence
-        | Movement.Income y ->  toVm y CatType.Income)
-
-let Movimenti path file=
-    movimentiVm path file false
-
-let Ignorati path file=
-     movimentiVm path file true
-
-let addGenericRule rule tagId startString path=
-    let ruleFile = path + "MappingRules.csv"
-    let newRow = [Ignored.Row(rule,tagId,startString)]
-    let newRules = Ignored.Load(ruleFile).Append newRow
-    System.IO.File.WriteAllText (ruleFile, newRules.SaveToString(';'))
-
-let addIgnore startString path=
-    addGenericRule "ignore" "" startString path
-
-let addRule tagId startString path=
-    addGenericRule "tag" tagId startString path
