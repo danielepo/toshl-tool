@@ -137,6 +137,22 @@ let SaveRecords account path file=
         |> Request.excecute
 
     for entry in entries do
-        setEntry entry |> ignore
+        let record:DataAccessLayer.Record = {
+            Ammount = entry.amount
+            Category = entry.category 
+                |> System.Int32.TryParse 
+                |> fun (b,x)-> if b then x else 0
+            Tag= entry.tags 
+                |> List.map (fun x -> System.Int32.TryParse x)
+                |> List.filter (fun (b,_) -> b)
+                |> List.map (fun (_,x) -> x)
+            Date = entry.date
+                |> System.DateTime.TryParse 
+                |> fun (b,x)-> if b then x else (new DateTime())
+            Description = entry.desc
+        }
+
+        DataAccessLayer.MovementSaver.insertAMovement record 
+//        setEntry  entry |> ignore
     
   

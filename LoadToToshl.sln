@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csp
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnitTests", "UnitTests\UnitTests.fsproj", "{5526E4F2-8666-4D2A-AA7F-CB6A186C144E}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DataAccessLayer", "DataAccessLayer\DataAccessLayer.fsproj", "{14A1C3F8-5693-49EA-966D-0327D6478B13}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{5526E4F2-8666-4D2A-AA7F-CB6A186C144E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5526E4F2-8666-4D2A-AA7F-CB6A186C144E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5526E4F2-8666-4D2A-AA7F-CB6A186C144E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
