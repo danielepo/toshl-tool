@@ -41,10 +41,24 @@ let movimentiParser path (file:Stream) getIgnored=
             let (!!!) x = if getIgnored then x else not x
             not (isSaldo s) && !!! (isIgnored s)
 
+        let first = movimentiCsv.Rows |> Seq.head
+        let alreadyLoaded= 
+            DataAccessLayer.MovementSaver.getMonth (first.DATA)
+            |> Seq.map DataAccessLayer.toRecord
+
+        let WasLoaded (x:EstrattoConto.Row) =
+            let desc = x.``DESCRIZIONE OPERAZIONE``
+            alreadyLoaded 
+            |> Seq.tryFind (fun y -> 
+                    y.Description = desc &&
+                    if y.Ammount < 0.0 then y.Ammount = -x.DARE else y.Ammount = x.AVERE)
+            |> Option.isSome
+        
         movimentiCsv.Rows 
         |> Seq.filter (fun x -> shouldGet x.``DESCRIZIONE OPERAZIONE``)
+        |> Seq.filter (fun x -> not <| WasLoaded x)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
-
+        
     movimenti
 
 

@@ -6,3 +6,4 @@
 #r "System.Xml.Linq.dll"
 #r "../../packages/FSharp.Data.2.3.1/lib/net40/FSharp.Data.dll"
 #r "../../packages/FSharp.Data.TypeProviders.5.0.0.2/lib/net40/FSharp.Data.TypeProviders.dll"
+#r "../../DataAccessLayer/bin/Debug/DataAccessLayer.dll"

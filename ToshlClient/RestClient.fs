@@ -97,6 +97,29 @@ let GetEntriesByTag (f:DateTime) (t:DateTime) =
     |> Seq.map tagGroupToTaggedEntries
     |> Seq.concat 
 
+let toRecord (entry:Entry):DataAccessLayer.Record= 
+    {
+        Ammount = entry.amount
+        Category = entry.category 
+            |> System.Int32.TryParse 
+            |> fun (b,x)-> if b then x else 0
+        Tag= entry.tags 
+            |> List.map (fun x -> System.Int32.TryParse x)
+            |> List.filter (fun (b,_) -> b)
+            |> List.map (fun (_,x) -> x)
+        Date = entry.date
+            |> System.DateTime.TryParse 
+            |> fun (b,x)-> if b then x else (new DateTime())
+        Description = entry.desc
+    }
+let map (record:DataAccessLayer.Record) (entries: Entry seq):Entry=
+    entries 
+    |> Seq.find (fun x -> 
+        x.desc = record.Description &&
+        x.category = record.Category.ToString() &&
+        x.amount = record.Ammount
+        )
+
 let SaveRecords account path file= 
     
     let tags = Entities.getTags()
@@ -127,6 +150,7 @@ let SaveRecords account path file=
         Movimenti path file
         |> Seq.filter (fun x -> x.Tagged)
         |> Seq.map createEntry
+   
 
     let setEntry (entry : Entry) = 
     
@@ -137,22 +161,9 @@ let SaveRecords account path file=
         |> Request.excecute
 
     for entry in entries do
-        let record:DataAccessLayer.Record = {
-            Ammount = entry.amount
-            Category = entry.category 
-                |> System.Int32.TryParse 
-                |> fun (b,x)-> if b then x else 0
-            Tag= entry.tags 
-                |> List.map (fun x -> System.Int32.TryParse x)
-                |> List.filter (fun (b,_) -> b)
-                |> List.map (fun (_,x) -> x)
-            Date = entry.date
-                |> System.DateTime.TryParse 
-                |> fun (b,x)-> if b then x else (new DateTime())
-            Description = entry.desc
-        }
-
-        DataAccessLayer.MovementSaver.insertAMovement record 
+        entry
+        |> toRecord
+        |> DataAccessLayer.MovementSaver.insertAMovement 
 //        setEntry  entry |> ignore
     
   

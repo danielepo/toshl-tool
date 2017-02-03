@@ -42,7 +42,14 @@ type MovementEntity(month : string, hash : string, record : Record option) =
         sprintf "%s\n%f\n%s\n%s" this.Description this.Ammount this.PartitionKey this.RowKey
     new() = MovementEntity(null, null, None)
     
-
+let toRecord (x:MovementEntity):Record =
+    {
+        Ammount = x.Ammount
+        Tag = x.Tag
+        Description = x.Description
+        Date = x.Date
+        Category = x.Category
+    }
 
 module Storage = 
     // Parse the connection string and return a reference to the storage account.
@@ -100,13 +107,23 @@ module MovementSaver =
         (date.Date.ToString("yyyy-MM"))
         |> queryByPartitionKey<MovementEntity> 
         |> getAllRows (table())
-    
+
     let getEntity (date:System.DateTime) (description) = 
         // TODO Migliorare le query per prendere solo uno
         getMonth date 
         |> Seq.filter (fun x -> x.Description = description)
         |> fun x -> if x |> Seq.length = 1 then Some (Seq.head x) else None
 
-let table = Storage.getTable "Records"
+    let excludeAlreadyInserted (date:System.DateTime) (records: Record seq)= 
+        let partitions = 
+            records 
+            |> Seq.map (fun x -> x.Description |> getHash , x)
 
-table.ExecuteQuery<MovementEntity>(new TableQuery<MovementEntity>())
+        let alredyIn = 
+            getMonth date
+            |> Seq.map (fun x -> x.RowKey)
+
+        partitions
+        |> Seq.filter (fun (x,_) ->  alredyIn |> Seq.contains x)
+        |> Seq.map (fun (_,x) -> x)
+        
