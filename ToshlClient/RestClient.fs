@@ -1,5 +1,5 @@
 ﻿module ToshClient
-open MovimentiModelBuilder
+open SharedTypes
 open ToshlTypes
 open Newtonsoft.Json
 open RestSharp
@@ -23,7 +23,7 @@ let private getByLink link deserializer =
     gew 0 link
 
 module Serializer =
-    let private goSerial = true
+    let private goSerial = false
     let internal serializeToFile file obj = 
         if goSerial then
             let path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\" + file
@@ -160,9 +160,6 @@ let SaveRecords (records:ReportVm seq)=
         |> Request.excecute
 
     for entry in entries do
-        entry
-        |> toRecord
-        |> DataAccessLayer.MovementSaver.insertAMovement 
-//        setEntry  entry |> ignore
+        setEntry  entry |> ignore
     
   

@@ -9,8 +9,8 @@ namespace WebApp.Controllers
     public class HomeVM
     {
         public List<SelectListItem> Accounts;
-        public List<MovimentiModelBuilder.ReportVm> IgnoredReports;
-        public List<MovimentiModelBuilder.ReportVm> Reports;
+        public List<SharedTypes.ReportVm> IgnoredReports;
+        public List<SharedTypes.ReportVm> Reports;
         public List<SelectListItem> Rules;
         public List<SelectListItem> Tags;
     }
@@ -61,14 +61,14 @@ namespace WebApp.Controllers
         public ActionResult SaveEntries(List<Some> model)
         {
             var selected = model.Where(x => x.Tag != 0);
-            var reports = (List<MovimentiModelBuilder.ReportVm>) Session[vm];
+            var reports = (List<SharedTypes.ReportVm>) Session[vm];
 
-            var expences = new List<MovimentiModelBuilder.ReportVm>();
+            var expences = new List<SharedTypes.ReportVm>();
             foreach (var row in selected)
             {
                 var expese = reports.First(x => x.Hash == row.Id);
                 // a
-                var report = new MovimentiModelBuilder.ReportVm(expese.Ammount,
+                var report = new SharedTypes.ReportVm(expese.Ammount,
                     expese.Date, expese.Description, expese.Causale,
                     expese.Type, true, row.Tag, expese.Hash,0, row.Account);
                 expences.Add(report);
@@ -113,8 +113,8 @@ namespace WebApp.Controllers
                         .ToList(),
                 Rules = new List<SelectListItem>()
                 {
-                    new SelectListItem() {Text = "Ignore", Value = ((int) MovimentiModelBuilder.RuleType.Ignore).ToString()},
-                    new SelectListItem() {Text = "Tag", Value = ((int) MovimentiModelBuilder.RuleType.Tagged).ToString()}
+                    new SelectListItem() {Text = "Ignore", Value = ((int) SharedTypes.RuleType.Ignore).ToString()},
+                    new SelectListItem() {Text = "Tag", Value = ((int) SharedTypes.RuleType.Tagged).ToString()}
                 },
                 Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList()
             };

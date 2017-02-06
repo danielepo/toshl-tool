@@ -1,17 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>2c3346d4-498e-4b83-b9f3-5986d91d9757</ProjectGuid>
+    <ProjectGuid>57ffc067-ef33-4853-aa0d-128f8cc455e1</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>ToshlClient</RootNamespace>
-    <AssemblyName>ToshlClient</AssemblyName>
+    <RootNamespace>SharedTypes</RootNamespace>
+    <AssemblyName>SharedTypes</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
-    <Name>ToshlClient</Name>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Name>SharedTypes</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -22,7 +23,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\ToshlClient.XML</DocumentationFile>
+    <DocumentationFile>bin\Debug\SharedTypes.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,8 +32,21 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\ToshlClient.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\SharedTypes.XML</DocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="mscorlib" />
+    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SharedTypes.fs" />
+    <None Include="Script.fsx" />
+  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>
@@ -49,48 +63,6 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
-  <ItemGroup>
-    <None Include="Script.fsx" />
-    <Content Include="packages.config" />
-    <Content Include="app.config" />
-    <None Include="Scripts\load-references-debug.fsx" />
-    <None Include="Scripts\load-project-debug.fsx" />
-    <None Include="Scripts\load-references-release.fsx" />
-    <None Include="Scripts\load-project-release.fsx" />
-    <Compile Include="ToshlTypes.fs" />
-    <Compile Include="Request.fs" />
-    <Compile Include="RestClient.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="RestSharp">
-      <HintPath>..\packages\RestSharp.105.2.3\lib\net451\RestSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Numerics" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DataAccessLayer\DataAccessLayer.fsproj">
-      <Name>DataAccessLayer</Name>
-      <Project>{14a1c3f8-5693-49ea-966d-0327d6478b13}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\SharedTypes\SharedTypes.fsproj">
-      <Name>SharedTypes</Name>
-      <Project>{57ffc067-ef33-4853-aa0d-128f8cc455e1}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

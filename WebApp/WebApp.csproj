@@ -296,6 +296,10 @@
       <Project>{a413fcd7-89bb-49db-bf45-e9bfd55c64bd}</Project>
       <Name>Parser</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SharedTypes\SharedTypes.fsproj">
+      <Project>{57ffc067-ef33-4853-aa0d-128f8cc455e1}</Project>
+      <Name>SharedTypes</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ToshlClient\ToshlClient.fsproj">
       <Project>{2c3346d4-498e-4b83-b9f3-5986d91d9757}</Project>
       <Name>ToshlClient</Name>

@@ -6,5 +6,5 @@
 #r "System.Core.dll"
 #r "System.dll"
 #r "System.Numerics.dll"
-#r "../../Parser/bin/Debug/Parser.dll"
 #r "../../DataAccessLayer/bin/Debug/DataAccessLayer.dll"
+#r "../../SharedTypes/bin/Debug/SharedTypes.dll"

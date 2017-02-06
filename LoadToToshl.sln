@@ -13,6 +13,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "UnitTests", "UnitTests\Unit
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DataAccessLayer", "DataAccessLayer\DataAccessLayer.fsproj", "{14A1C3F8-5693-49EA-966D-0327D6478B13}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "SharedTypes", "SharedTypes\SharedTypes.fsproj", "{57FFC067-EF33-4853-AA0D-128F8CC455E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{14A1C3F8-5693-49EA-966D-0327D6478B13}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57FFC067-EF33-4853-AA0D-128F8CC455E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57FFC067-EF33-4853-AA0D-128F8CC455E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57FFC067-EF33-4853-AA0D-128F8CC455E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57FFC067-EF33-4853-AA0D-128F8CC455E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -42,17 +42,39 @@ let movimentiParser path (file:Stream) getIgnored=
             let (!!!) x = if getIgnored then x else not x
             not (isSaldo s) && !!! (isIgnored s)
 
-        let first = movimentiCsv.Rows |> Seq.head
-        let alreadyLoaded= 
-            DataAccessLayer.MovementSaver.getMonth (first.DATA)
-            |> Seq.map DataAccessLayer.toRecord
+        let toAndFrom = 
+            let getMaxAndMin (xs:'a seq)= 
+                Seq.min xs,Seq.max xs
+
+            movimentiCsv.Rows 
+            |> Seq.map (fun x -> x.DATA)
+            |> getMaxAndMin 
+
+        let alreadyLoaded = 
+            ToshClient.getEntries (fst toAndFrom) (snd toAndFrom)
+            |> List.map 
+                (fun x-> 
+                    let descParts = x.desc.Split('\t')
+                    if descParts.Length = 2 then Some descParts.[1] else None)
 
         let WasLoaded (x:EstrattoConto.Row) =
-            let desc = clean x.``DESCRIZIONE OPERAZIONE``
+            let record = if isExpence x then getExpence else getIncome 
+            
+            let hash =
+                let desc = clean x.``DESCRIZIONE OPERAZIONE``   
+                let asStr = 
+                    match record x with 
+                    | Income i -> 
+                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
+                    | Expence i -> 
+                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
+                DataAccessLayer.MovementSaver.getHash(asStr)
+
             alreadyLoaded 
-            |> Seq.tryFind (fun y -> 
-                    y.Description = desc &&
-                    if y.Ammount < 0.0 then y.Ammount = -x.DARE else y.Ammount = x.AVERE)
+            |> List.tryFind (fun y -> 
+                match y with 
+                | Some x -> x = hash
+                | None -> false)
             |> Option.isSome
         
         movimentiCsv.Rows 
