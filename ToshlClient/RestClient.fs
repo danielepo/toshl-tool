@@ -120,7 +120,7 @@ let map (record:DataAccessLayer.Record) (entries: Entry seq):Entry=
         x.amount = record.Ammount
         )
 
-let SaveRecords account path file= 
+let SaveRecords (records:ReportVm seq)= 
     
     let tags = Entities.getTags()
     let getTag (x : ReportVm) = tags |> List.filter (fun t -> t.id = x.Tag.ToString())
@@ -133,22 +133,21 @@ let SaveRecords account path file=
              |> List.filter (fun t -> t.id = tag.category)
              |> List.head).id
         else ""
-    
+
     let createEntry (x : ReportVm) = 
         { amount = 
               if x.Type = CatType.Expence then -x.Ammount
               else x.Ammount
           currency = { code = "EUR" }
           date = x.Date.ToString("yyyy-MM-dd")
-          desc = x.Description.Replace("R.I.D.                             CRED. ", "")
-          account = account
+          desc = String.Concat(x.Description, "\t", x.Hash)
+          account = x.Account.ToString()
           category = getCategory x
           tags = getTag x |> List.map (fun t -> t.id)
           completed = true }
     
     let entries =
-        Movimenti path file
-        |> Seq.filter (fun x -> x.Tagged)
+        records
         |> Seq.map createEntry
    
 

@@ -19,6 +19,7 @@ namespace WebApp.Controllers
     public class LoadController : Controller
     {
         private const string stream = "stream";
+        private const string vm = "vm";
         private Stream inputStream;
         private string path = System.Web.HttpContext.Current.Request.PhysicalApplicationPath;
 
@@ -49,24 +50,33 @@ namespace WebApp.Controllers
             return View(BuildVMM());
         }
 
-        public ActionResult Load()
+        public class Some
         {
-            inputStream = (Stream)Session[stream];
-            ToshClient.SaveRecords("RID", path, inputStream);
-            var vm = new LoadVM();
-
-            return View(vm);
+            public int Tag { get; set; }
+            public string Id { get; set; }
+            public int Account { get; set; }
         }
 
         [HttpPost]
-        public ActionResult Save(string account)
+        public ActionResult SaveEntries(List<Some> model)
         {
-            if (Session[stream] != null)
+            var selected = model.Where(x => x.Tag != 0);
+            var reports = (List<MovimentiModelBuilder.ReportVm>) Session[vm];
+
+            var expences = new List<MovimentiModelBuilder.ReportVm>();
+            foreach (var row in selected)
             {
-                inputStream = (Stream)Session[stream];
-                ToshClient.SaveRecords(account, path, inputStream);
+                var expese = reports.First(x => x.Hash == row.Id);
+                // a
+                var report = new MovimentiModelBuilder.ReportVm(expese.Ammount,
+                    expese.Date, expese.Description, expese.Causale,
+                    expese.Type, true, row.Tag, expese.Hash,0, row.Account);
+                expences.Add(report);
             }
-            return View();
+
+            ToshClient.SaveRecords(expences);
+
+            return RedirectToAction("Index");
         }
 
         [HttpPost]
@@ -91,9 +101,11 @@ namespace WebApp.Controllers
         {
             var Tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
             var Accounts = new List<ToshlTypes.Account>(ToshClient.Entities.getAccounts());
+            var reports = MovimentiModelBuilder.Movimenti(path, inputStream);
+            Session[vm] = reports;
             var homeVM = new HomeVM
             {
-                Reports = MovimentiModelBuilder.Movimenti(path, inputStream),
+                Reports = reports,
                 IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream),
                 Tags =
                     Tags.Where(x => !x.deleted)

@@ -9,7 +9,8 @@ let movimentiParser path (file:Stream) getIgnored=
     file.Position <- 0L
     let it = CultureInfo.CreateSpecificCulture("it-IT")
     Threading.Thread.CurrentThread.CurrentCulture <- it
-
+    let clean (str:string) = 
+        String.Join(" ", str.Split([|' '|],StringSplitOptions.RemoveEmptyEntries))
     let rules str = Ignored.Load(path + "MappingRules.csv")  |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = str ))
 
     let movimentiCsv = EstrattoConto.Load(file)
@@ -24,7 +25,7 @@ let movimentiParser path (file:Stream) getIgnored=
             Date = x.DATA
             Ammount = y
             Causale = if isCausale then causale else 0
-            Description = x.``DESCRIZIONE OPERAZIONE``
+            Description = clean x.``DESCRIZIONE OPERAZIONE`` 
             Tag = tag
         }
 
@@ -47,7 +48,7 @@ let movimentiParser path (file:Stream) getIgnored=
             |> Seq.map DataAccessLayer.toRecord
 
         let WasLoaded (x:EstrattoConto.Row) =
-            let desc = x.``DESCRIZIONE OPERAZIONE``
+            let desc = clean x.``DESCRIZIONE OPERAZIONE``
             alreadyLoaded 
             |> Seq.tryFind (fun y -> 
                     y.Description = desc &&
@@ -55,7 +56,7 @@ let movimentiParser path (file:Stream) getIgnored=
             |> Option.isSome
         
         movimentiCsv.Rows 
-        |> Seq.filter (fun x -> shouldGet x.``DESCRIZIONE OPERAZIONE``)
+        |> Seq.filter (fun x -> shouldGet (clean x.``DESCRIZIONE OPERAZIONE``))
         |> Seq.filter (fun x -> not <| WasLoaded x)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
         

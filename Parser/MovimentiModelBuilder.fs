@@ -2,7 +2,8 @@
 open System
 open Types
 open Parser
-
+open DataAccessLayer
+ 
 type CatType =
     | Expence
     | Income
@@ -14,21 +15,32 @@ type ReportVm ={
     Causale: int 
     Type: CatType
     Tagged: bool
-    Tag:int}
+    Tag:int
+    Hash:string
+    Category: int
+    Account: int}
 
 type RuleType = 
     | Ignore = 0
     | Tagged = 1
 
 let private movimentiVm path file getIgnored = 
-    let toVm (y:Record) t = { 
-        Ammount = y.Ammount; 
-        Date = y.Date; 
-        Description = y.Description; 
-        Causale = y.Causale; 
-        Type = t ;
-        Tagged = not (y.Tag = 0);
-        Tag = y.Tag} 
+    let toVm (y:Types.Record) t = 
+        let hash =
+            let asStr = String.concat "" [y.Date.ToString(); y.Ammount.ToString(); y.Description]
+            MovementSaver.getHash(asStr)
+        { 
+            Ammount = y.Ammount; 
+            Date = y.Date; 
+            Description = y.Description; 
+            Causale = y.Causale; 
+            Type = t ;
+            Tagged = not (y.Tag = 0);
+            Tag = y.Tag
+            Hash = hash
+            Category = 0
+            Account = 0
+        } 
     movimentiParser path file getIgnored
     |> Seq.map (fun x -> 
         match x with
