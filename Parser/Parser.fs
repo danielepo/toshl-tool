@@ -51,32 +51,45 @@ let movimentiParser path (file:Stream) getIgnored=
             |> getMaxAndMin 
 
         let alreadyLoaded = 
+            System.Diagnostics.Trace.WriteLine(sprintf "f: %A, S: %A" (fst toAndFrom) (snd toAndFrom))
             ToshClient.getEntries (fst toAndFrom) (snd toAndFrom)
             |> List.map 
                 (fun x-> 
                     let descParts = x.desc.Split('\t')
                     if descParts.Length = 2 then Some descParts.[1] else None)
 
-        let WasLoaded (x:EstrattoConto.Row) =
-            let record = if isExpence x then getExpence else getIncome 
-            
-            let hash =
-                let desc = clean x.``DESCRIZIONE OPERAZIONE``   
+        let hash (x:EstrattoConto.Row) =
+                let record = if isExpence x then getExpence x else getIncome x
                 let asStr = 
-                    match record x with 
+                    match record with 
                     | Income i -> 
                         String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
                     | Expence i -> 
                         String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
-                DataAccessLayer.MovementSaver.getHash(asStr)
+                let hash = DataAccessLayer.MovementSaver.getHash(asStr)
+                System.Diagnostics.Trace.WriteLine(asStr+"\t"+ hash)
+                hash
 
+        let WasLoaded (x:EstrattoConto.Row) =
+            
             alreadyLoaded 
             |> List.tryFind (fun y -> 
                 match y with 
-                | Some x -> x = hash
+                | Some r -> r = hash x
                 | None -> false)
             |> Option.isSome
         
+        System.Diagnostics.Trace.WriteLine("Dati Gia caricati")
+        alreadyLoaded
+        |> List.iter (fun x -> 
+            match x with
+            | Some s -> System.Diagnostics.Trace.WriteLine(s)
+            | None -> System.Diagnostics.Trace.WriteLine("NONE"))
+        
+        System.Diagnostics.Trace.WriteLine("Dati Letti")
+        movimentiCsv.Rows 
+        |> Seq.iter (fun x -> hash x |> ignore)
+
         movimentiCsv.Rows 
         |> Seq.filter (fun x -> shouldGet (clean x.``DESCRIZIONE OPERAZIONE``))
         |> Seq.filter (fun x -> not <| WasLoaded x)
