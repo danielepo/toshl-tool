@@ -61,11 +61,11 @@ let movimentiParser path (file:Stream) getIgnored=
         let hash (x:EstrattoConto.Row) =
                 let record = if isExpence x then getExpence x else getIncome x
                 let asStr = 
+                    let conc (i:Record)= 
+                        String.concat "" [i.Date.ToString("dd/MM/yyyy HH:mm:ss"); i.Ammount.ToString(); i.Description]
                     match record with 
-                    | Income i -> 
-                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
-                    | Expence i -> 
-                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
+                    | Income i -> conc i
+                    | Expence i -> conc i
                 let hash = DataAccessLayer.MovementSaver.getHash(asStr)
                 System.Diagnostics.Trace.WriteLine(asStr+"\t"+ hash)
                 hash
