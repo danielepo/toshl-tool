@@ -67,7 +67,7 @@ let movimentiParser path (file:Stream) getIgnored=
                 let record = if isExpence x then getExpence x else getIncome x
                 let asStr = 
                     let conc (i:Record)= 
-                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
+                        String.concat "" [i.Date.ToString("yyyy-MM-dd"); i.Ammount.ToString(); i.Description]
                     match record with 
                     | Income i -> conc i
                     | Expence i -> conc i
