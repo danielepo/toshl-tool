@@ -9,7 +9,7 @@ open SharedTypes
 let private movimentiVm path file getIgnored = 
     let toVm (y:Types.Record) t = 
         let hash =
-            let asStr = String.concat "" [y.Date.ToString(); y.Ammount.ToString(); y.Description]
+            let asStr = String.concat "" [y.Date.ToString("yyyy-MM-dd"); y.Ammount.ToString(); y.Description]
             MovementSaver.getHash(asStr)
         { 
             Ammount = y.Ammount; 
