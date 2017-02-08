@@ -67,7 +67,7 @@ let movimentiParser path (file:Stream) getIgnored=
                     | Income i -> conc i
                     | Expence i -> conc i
                 let hash = DataAccessLayer.MovementSaver.getHash(asStr)
-                System.Diagnostics.Trace.WriteLine(asStr+"\t"+ hash)
+                System.Diagnostics.Trace.WriteLine("'"+asStr+"'\t"+ hash)
                 hash
 
         let WasLoaded (x:EstrattoConto.Row) =
