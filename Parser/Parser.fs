@@ -4,11 +4,16 @@ open Types
 open System.Globalization
 open System.IO
 
+let setCulture cult = 
+    let it = System.Globalization.CultureInfo.CreateSpecificCulture(cult)
+    System.Threading.Thread.CurrentThread.CurrentCulture <- it
+    System.Threading.Thread.CurrentThread.CurrentUICulture <- it
+    System.Diagnostics.Trace.WriteLine System.Threading.Thread.CurrentThread.CurrentCulture.DisplayName
+
 
 let movimentiParser path (file:Stream) getIgnored=
     file.Position <- 0L
-    let it = CultureInfo.CreateSpecificCulture("it-IT")
-    Threading.Thread.CurrentThread.CurrentCulture <- it
+    setCulture "it-IT"
     let clean (str:string) = 
         String.Join(" ", str.Split([|' '|],StringSplitOptions.RemoveEmptyEntries))
     let rules str = Ignored.Load(path + "MappingRules.csv")  |>( fun x -> x.Rows |> Seq.filter (fun y -> y.Rule = str ))
@@ -62,7 +67,7 @@ let movimentiParser path (file:Stream) getIgnored=
                 let record = if isExpence x then getExpence x else getIncome x
                 let asStr = 
                     let conc (i:Record)= 
-                        String.concat "" [i.Date.ToString("dd/MM/yyyy HH:mm:ss"); i.Ammount.ToString(); i.Description]
+                        String.concat "" [i.Date.ToString(); i.Ammount.ToString(); i.Description]
                     match record with 
                     | Income i -> conc i
                     | Expence i -> conc i
@@ -79,6 +84,7 @@ let movimentiParser path (file:Stream) getIgnored=
                 | None -> false)
             |> Option.isSome
         
+        setCulture "it-IT"
         System.Diagnostics.Trace.WriteLine("Dati Gia caricati")
         alreadyLoaded
         |> List.iter (fun x -> 
