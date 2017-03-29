@@ -27,7 +27,7 @@ let movimentiParser path (file:Stream) getIgnored=
             if Seq.isEmpty rulesThatBegins then 0 else Int32.Parse((Seq.head rulesThatBegins).TagId)
         let isCausale, causale = Int32.TryParse x.``CAUSALE ABI``
         {
-            Date = x.DATA
+            Date = x.VALUTA.Value
             Ammount = y
             Causale = if isCausale then causale else 0
             Description = clean x.``DESCRIZIONE OPERAZIONE`` 
@@ -52,7 +52,7 @@ let movimentiParser path (file:Stream) getIgnored=
                 Seq.min xs,Seq.max xs
 
             movimentiCsv.Rows 
-            |> Seq.map (fun x -> x.DATA)
+            |> Seq.map (fun x -> x.VALUTA.Value)
             |> getMaxAndMin 
 
         let alreadyLoaded = 
@@ -97,6 +97,7 @@ let movimentiParser path (file:Stream) getIgnored=
         |> Seq.iter (fun x -> hash x |> ignore)
 
         movimentiCsv.Rows 
+        |> Seq.filter (fun x -> x.VALUTA.IsSome)
         |> Seq.filter (fun x -> shouldGet (clean x.``DESCRIZIONE OPERAZIONE``))
         |> Seq.filter (fun x -> not <| WasLoaded x)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
