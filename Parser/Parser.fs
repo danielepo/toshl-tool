@@ -39,6 +39,10 @@ let movimentiParser path (file:Stream) getIgnored=
     let isExpence (x:EstrattoConto.Row) = Double.IsNaN x.AVERE
 
     let movimenti = 
+        let rowsWithValuta =
+            movimentiCsv.Rows 
+            |> Seq.filter (fun x -> x.VALUTA.IsSome)
+        
         let ignored = rules "ignore"
         let isIgnored (s:string) = ignored |> Seq.fold (fun acc x -> acc || s.StartsWith x.Starts) false
         let isSaldo s =  s = "Saldo iniziale" || s = "Saldo contabile"
@@ -51,7 +55,7 @@ let movimentiParser path (file:Stream) getIgnored=
             let getMaxAndMin (xs:'a seq)= 
                 Seq.min xs,Seq.max xs
 
-            movimentiCsv.Rows 
+            rowsWithValuta
             |> Seq.map (fun x -> x.VALUTA.Value)
             |> getMaxAndMin 
 
@@ -93,11 +97,12 @@ let movimentiParser path (file:Stream) getIgnored=
             | None -> System.Diagnostics.Trace.WriteLine("NONE"))
         
         System.Diagnostics.Trace.WriteLine("Dati Letti")
-        movimentiCsv.Rows 
+
+        rowsWithValuta
         |> Seq.iter (fun x -> hash x |> ignore)
 
-        movimentiCsv.Rows 
-        |> Seq.filter (fun x -> x.VALUTA.IsSome)
+        
+        rowsWithValuta
         |> Seq.filter (fun x -> shouldGet (clean x.``DESCRIZIONE OPERAZIONE``))
         |> Seq.filter (fun x -> not <| WasLoaded x)
         |> Seq.map (fun x -> x |> if isExpence x then getExpence else getIncome)
