@@ -105,7 +105,7 @@ namespace WebApp.Controllers
             Session[vm] = reports;
             var homeVM = new HomeVM
             {
-                Reports = reports,
+                Reports = reports.OrderBy(x => x.Date).ToList(),
                 IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream),
                 Tags =
                     Tags.Where(x => !x.deleted)
