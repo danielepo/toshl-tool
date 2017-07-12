@@ -25,7 +25,7 @@ namespace WebApp.Controllers
             //  . per i mesi a venire indica il valore medio dell'anno
             //  . calcola i costi totali nell'anno per tag
             //  .. per ogni tag poter indicare il tipo ricorrenza (o i mesi in cui ricorrere)
-            var startDate = new DateTime(2016,1,1,0,0,0);
+            var startDate = new DateTime(2017,1,1,0,0,0);
 
             if (Session["vm"] != null)
             {
