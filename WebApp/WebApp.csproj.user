@@ -10,6 +10,7 @@
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort>44301</IISExpressSSLPort>
     <NameOfLastUsedPublishProfile>expenses-analyzer - Web Deploy</NameOfLastUsedPublishProfile>
+    <ToolsVersionPromptShown>2.2</ToolsVersionPromptShown>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
