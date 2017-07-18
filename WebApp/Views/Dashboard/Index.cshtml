@@ -2,14 +2,26 @@
     ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@model WebApp.Controllers.Graphic
+@model WebApp.ViewModels.ViewModelTable
 <h2>title</h2>
 
 <script src="~/Scripts/dashboard/index.js"></script>
 <script type="text/javascript">
-    
 
-    @Html.Raw("var vm = new VM([" + string.Join(",", Model.Entries.Select(e => "new Entry('" + e.Key + "',[" + string.Join(",", e.Value.Select(v => "new Value(" + v + ")")) + "])")) + "]);")
+    @{
+
+        var rows = Model.TagValues.Select(x =>
+        {
+            var entries = string.Join(",", x.Value.Entries);
+            var result = "\n{tag:\"" + x.Key + "\"," +
+                         "\nrow: {" +
+                         "\n\tentries:[" + entries + "]," +
+                         "\n\tmean:" + x.Value.Mean + "}}";
+            return result;
+        });
+
+    }
+        @Html.Raw("var vm = new VM([" + string.Join(",", rows) + "]);");
 
     jQuery(document)
         .ready(function () {
@@ -23,6 +35,7 @@
             <!-- ko foreach: labels-->
             <th data-bind="text: $data"></th>
             <!-- /ko -->
+            <th>Mean</th>
             <th>Tot</th>
         </tr>
     </thead>
@@ -32,26 +45,29 @@
             <td data-bind="text: tag"></td>
             <!-- ko foreach: entries-->
             <td>
-                <input type="number" data-bind="value: number" style="width: 50px" />
+                <input type="number" data-bind="value: value" style="width: 50px" />
             </td>
             <!-- /ko -->
+            <td data-bind="text: meanCurr" class="number"></td>
             <td data-bind="text: totalCurr" class="number"></td>
         </tr>
         <!-- /ko -->
-        
+
     </tbody>
     <tfoot>
 
         <tr data-bind="css: profitStatus">
             <td colspan="13">Total Income</td>
+            <td data-bind="text:totalMeanIncomeCurr" class="number"></td>
             <td data-bind="text:totalIncomeCurr" class="number"></td>
         </tr>
         <tr data-bind="css: profitStatus">
             <td colspan="13">Total Expence</td>
+            <td data-bind="text:totalMeanExpenceCurr" class="number"></td>
             <td data-bind="text:totalExpenceCurr" class="number"></td>
         </tr>
         <tr data-bind="css: profitStatus">
-            <td colspan="13">Remaining</td>
+            <td colspan="14">Remaining</td>
             <td data-bind="text:remainingCurr" class="number"></td>
         </tr>
     </tfoot>
