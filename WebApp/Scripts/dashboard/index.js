@@ -59,73 +59,73 @@ var VM = function (entries) {
     self.profitStatus = ko.computed(function () {
         return self.remaining() > 0 ? "success" : "danger";
     });
-    var colors = [];
-    var objectGenerator = function (arr, tag) {
-        var red;
-        var green;
-        var blue;
-        if (typeof colors[tag] === "undefined") {
-            red = Math.floor(Math.random() * 256);
-            green = Math.floor(Math.random() * 256);
-            blue = Math.floor(Math.random() * 256);
-            colors[tag] = [red, green, blue];
-        }
-        else {
-            red = colors[tag][0];
-            green = colors[tag][1];
-            blue = colors[tag][2];
-        }
-        return {
-            label: tag,
-            backgroundColor: "rgba(" + red + "," + green + "," + blue + ",0.2)",
-            fill: false,
-            lineTension: 0.1,
-            borderJoinStyle: 'miter',
-            borderColor: "rgba(" + red + "," + green + "," + blue + ",1)",
-            pointColor: "rgba(" + red + "," + green + "," + blue + ",1)",
-            pointStrokeColor: "#fff",
-            pointHighlightFill: "#fff",
-            pointHighlightStroke: "rgba(" + red + "," + green + "," + blue + ",1)",
-            data: arr
-        };
-    };
-    self.dataset1 = ko.computed(function () {
-        var object = [];
-        for (var j = 0; j < self.entries.length; j++) {
-            var arr = [];
-            for (var i = 0; i < 12; i++) {
-                var val = parseFloat(self.entries[j].entries[i].number());
-                if (val >= 0)
-                    val = 0;
-                arr.push(-val);
-            }
-            object.push(objectGenerator(arr, self.entries[j].tag));
-        }
-        return object;
-    });
-    self.dataset2 = ko.computed(function () {
-        var object = [];
-        for (var j = 0; j < self.entries.length; j++) {
-            var arr = [];
-            for (var i = 0; i < 12; i++) {
-                var val = parseFloat(self.entries[j].entries[i].number());
-                if (val >= 0)
-                    val = 0;
-                if (i === 0)
-                    arr.push(-val);
-                else
-                    arr.push(-val + arr[i - 1]);
-            }
-            object.push(objectGenerator(arr, self.entries[j].tag));
-        }
-        return object;
-    }).extend({ notify: 'always' });
+    //var colors = [];
+    //var objectGenerator = function (arr, tag) {
+    //    var red;
+    //    var green;
+    //    var blue;
+    //    if (typeof colors[tag] === "undefined") {
+    //        red = Math.floor(Math.random() * 256);
+    //        green = Math.floor(Math.random() * 256);
+    //        blue = Math.floor(Math.random() * 256);
+    //        colors[tag] = [red, green, blue];
+    //    } else {
+    //        red = colors[tag][0];
+    //        green = colors[tag][1];
+    //        blue = colors[tag][2];
+    //    }
+    //    return {
+    //        label: tag,
+    //        backgroundColor: "rgba(" + red + "," + green + "," + blue + ",0.2)",
+    //        fill: false,
+    //        lineTension: 0.1,
+    //        borderJoinStyle: 'miter',
+    //        borderColor: "rgba(" + red + "," + green + "," + blue + ",1)",
+    //        pointColor: "rgba(" + red + "," + green + "," + blue + ",1)",
+    //        pointStrokeColor: "#fff",
+    //        pointHighlightFill: "#fff",
+    //        pointHighlightStroke: "rgba(" + red + "," + green + "," + blue + ",1)",
+    //        data: arr
+    //    };
+    //}
+    //    self.dataset1 = ko.computed(function () {
+    //    var object = [];
+    //    for (var j = 0; j < self.entries.length; j++) {
+    //        var arr = [];
+    //        for (var i = 0; i < 12; i++) {
+    //            var val = parseFloat(self.entries[j].entries[i].number());
+    //            if (val >= 0)
+    //                val = 0;
+    //            arr.push(-val);
+    //        }
+    //        object.push(objectGenerator(arr, self.entries[j].tag));
+    //    }
+    //    return object;
+    //});
+    //self.dataset2 = ko.computed(function () {
+    //    var object = [];
+    //    for (var j = 0; j < self.entries.length; j++) {
+    //        var arr = [];
+    //        for (var i = 0; i < 12; i++) {
+    //            var val = parseFloat(self.entries[j].entries[i].number());
+    //            if (val >= 0)
+    //                val = 0;
+    //            if (i === 0)
+    //                arr.push(-val);
+    //            else
+    //                arr.push(-val + arr[i - 1]);
+    //        }
+    //        object.push(objectGenerator(arr, self.entries[j].tag));
+    //    }
+    //    return object;
+    //}).extend({ notify: 'always' });
     self.Data = {
         labels: self.labels,
         datasets: self.dataset1
     };
-    self.Area = {
-        labels: self.labels,
-        datasets: self.dataset2
-    };
+    //self.Area = {
+    //    labels: self.labels,
+    //    datasets: self.dataset2
+    //};
 };
+//# sourceMappingURL=index.js.map

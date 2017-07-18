@@ -5,56 +5,11 @@
 @model WebApp.Controllers.Graphic
 <h2>title</h2>
 
-@{
-    var months = new[]
-    {
-        "January", "February", "March", "April", "May", "June", "July", "August", "September",
-        "October", "November", "Dicember"
-    };
-
-    var entries = new Dictionary<string, List<double>>();
-    var income = Model.taggedEntries.Select(tag => tag.Value.Where(x => x.amount > 0).Select(x => x.amount).Sum()).Sum();
-}
-@foreach (var tag in Model.taggedEntries)
-{
-    //var ann = tag.Value.Where(x => x.amount <= 0).Select(x =>
-    var ann = tag.Value.Select(x =>
-    {
-        var date = DateTime.Parse(x.date);
-        var month = date.Month;
-        return new { x.amount, month };
-    });
-    var dic = new Dictionary<int, double>();
-    foreach (var a in ann)
-    {
-        if (dic.ContainsKey(a.month))
-        {
-            dic[a.month] += a.amount;
-        }
-        else
-        {
-            dic.Add(a.month, a.amount);
-        }
-    }
-    var values = new List<double>();
-    for (int index = 0; index < months.Length; index++)
-    {
-        double value;
-        dic.TryGetValue(index + 1, out value);
-
-        values.Add(value);
-    }
-
-    entries.Add(tag.Key.name, values);
-}
-
-
-@*@Scripts.Render("~/bundles/chartjs")*@
 <script src="~/Scripts/dashboard/index.js"></script>
 <script type="text/javascript">
     
 
-    @Html.Raw("var vm = new VM([" + string.Join(",", entries.Select(e => "new Entry('" + e.Key + "',[" + string.Join(",", e.Value.Select(v => "new Value(" + v + ")")) + "])")) + "]);")
+    @Html.Raw("var vm = new VM([" + string.Join(",", Model.Entries.Select(e => "new Entry('" + e.Key + "',[" + string.Join(",", e.Value.Select(v => "new Value(" + v + ")")) + "])")) + "]);")
 
     jQuery(document)
         .ready(function () {
