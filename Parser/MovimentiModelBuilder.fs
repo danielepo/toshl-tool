@@ -6,7 +6,7 @@ open DataAccessLayer
  
 open SharedTypes
 
-let private movimentiVm path file getIgnored = 
+let private movimentiVm path file getIgnored csvType = 
     let toVm (y:Types.Record) t = 
         let hash =
             let asStr = String.concat "" [y.Date.ToString("yyyy-MM-dd"); y.Ammount.ToString(); y.Description]
@@ -23,16 +23,16 @@ let private movimentiVm path file getIgnored =
             Category = 0
             Account = 0
         } 
-    movimentiParser path file getIgnored
+    movimentiParser path file getIgnored csvType
     |> Seq.map (fun x -> 
         match x with
         | Movement.Expence y -> toVm y CatType.Expence
         | Movement.Income y ->  toVm y CatType.Income)
 
-let Movimenti path file=
-    movimentiVm path file false
+let Movimenti path file csvType=
+    movimentiVm path file false csvType
     |> System.Collections.Generic.List 
 
-let Ignorati path file=
-    movimentiVm path file true
+let Ignorati path file csvType=
+    movimentiVm path file true csvType
     |> System.Collections.Generic.List 

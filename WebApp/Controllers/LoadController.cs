@@ -18,17 +18,18 @@ namespace WebApp.Controllers
     [RequireHttps]
     public class LoadController : Controller
     {
-        private const string stream = "stream";
+        private const string streamKey = "stream";
+        private const string isContoCorrenteKey = "isContoCorrente";
         private const string vm = "vm";
         private Stream inputStream;
         private string path = System.Web.HttpContext.Current.Request.PhysicalApplicationPath;
 
         public ActionResult Index()
         {
-            if (Session[stream] == null)
+            if (Session[streamKey] == null)
                 return RedirectToAction("Index", "Home");
 
-            inputStream = (Stream)Session[stream];
+            inputStream = (Stream)Session[streamKey];
             return View(BuildVMM());
         }
 
@@ -45,8 +46,8 @@ namespace WebApp.Controllers
                     TagsRuleManager.AddIgnoreRule(start, path);
                     break;
             }
-            if (Session[stream] != null)
-                inputStream = (Stream)Session[stream];
+            if (Session[streamKey] != null)
+                inputStream = (Stream)Session[streamKey];
             return View(BuildVMM());
         }
 
@@ -61,7 +62,7 @@ namespace WebApp.Controllers
         public ActionResult SaveEntries(List<Some> model)
         {
             var selected = model.Where(x => x.Tag != 0);
-            var reports = (List<SharedTypes.ReportVm>) Session[vm];
+            var reports = (List<SharedTypes.ReportVm>)Session[vm];
 
             var expences = new List<SharedTypes.ReportVm>();
             foreach (var row in selected)
@@ -70,7 +71,7 @@ namespace WebApp.Controllers
                 // a
                 var report = new SharedTypes.ReportVm(expese.Ammount,
                     expese.Date, expese.Description, expese.Causale,
-                    expese.Type, true, row.Tag, expese.Hash,0, row.Account);
+                    expese.Type, true, row.Tag, expese.Hash, 0, row.Account);
                 expences.Add(report);
             }
 
@@ -80,12 +81,14 @@ namespace WebApp.Controllers
         }
 
         [HttpPost]
-        public ActionResult Upload(HttpPostedFileBase file)
+        public ActionResult Upload(HttpPostedFileBase file, string isContoCorrente)
         {
+            Session[isContoCorrenteKey] = isContoCorrente ?? "true";
+
             if (file != null && file.ContentLength > 0)
             {
                 inputStream = file.InputStream;
-                Session[stream] = inputStream;
+                Session[streamKey] = inputStream;
             }
             else
                 return RedirectToAction("Index", "Home");
@@ -96,17 +99,17 @@ namespace WebApp.Controllers
         {
             return View();
         }
-
+        
         private HomeVM BuildVMM()
         {
             var Tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
             var Accounts = new List<ToshlTypes.Account>(ToshClient.Entities.getAccounts());
-            var reports = MovimentiModelBuilder.Movimenti(path, inputStream);
+            var reports = MovimentiModelBuilder.Movimenti(path, inputStream, TipoCsv());
             Session[vm] = reports;
             var homeVM = new HomeVM
             {
                 Reports = reports.OrderBy(x => x.Date).ToList(),
-                IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream),
+                IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream, TipoCsv()),
                 Tags =
                     Tags.Where(x => !x.deleted)
                         .Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id })
@@ -120,6 +123,16 @@ namespace WebApp.Controllers
             };
 
             return homeVM;
+
+        }
+        private Types.CsvType TipoCsv()
+        {
+            bool result;
+            if(bool.TryParse(Session[isContoCorrenteKey] as string, out result))
+            {
+                return Types.CsvType.CartaCredito;
+            }
+            return Types.CsvType.ContoCorrente;
         }
     }
 

@@ -63,6 +63,7 @@
     <None Include="ListaMovimenti.csv" />
     <Content Include="packages.config" />
     <Compile Include="TagsManager.fs" />
+    <None Include="movimentiCarta.csv" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core">
