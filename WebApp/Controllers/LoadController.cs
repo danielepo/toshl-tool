@@ -130,7 +130,7 @@ namespace WebApp.Controllers
             bool result;
             if(bool.TryParse(Session[isContoCorrenteKey] as string, out result))
             {
-                return Types.CsvType.CartaCredito;
+                return result ? Types.CsvType.ContoCorrente : Types.CsvType.CartaCredito;
             }
             return Types.CsvType.ContoCorrente;
         }
