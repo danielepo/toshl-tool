@@ -174,7 +174,9 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\DashboardController.cs" />
+    <Compile Include="ViewModels\SaveEntriesViewModel.cs" />
     <Compile Include="Extensions\DictionaryExtensions.cs" />
+    <Compile Include="ViewModels\LoadExpensesViewModel.cs" />
     <Compile Include="ViewModels\ViewModelTable.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\LoadController.cs" />

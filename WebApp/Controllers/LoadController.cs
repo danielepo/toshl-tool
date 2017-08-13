@@ -1,20 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using WebApp.ViewModels;
 
 namespace WebApp.Controllers
 {
-    public class HomeVM
-    {
-        public List<SelectListItem> Accounts;
-        public List<SharedTypes.ReportVm> IgnoredReports;
-        public List<SharedTypes.ReportVm> Reports;
-        public List<SelectListItem> Rules;
-        public List<SelectListItem> Tags;
-        public Dictionary<ToshlTypes.Category, List<ToshlTypes.Tag>> CategoryTags { get; internal set; }
-    }
     [Authorize()]
     [RequireHttps]
     public class LoadController : Controller
@@ -31,8 +24,12 @@ namespace WebApp.Controllers
                 return RedirectToAction("Index", "Home");
 
             inputStream = (Stream)Session[streamKey];
-            return View(BuildVMM());
+            var viewModel = LoadExpensesViewModel.BuildLoadExpensesVM(inputStream, path, TipoCsv());
+            Session[vm] = viewModel.Reports;
+
+            return View(viewModel);
         }
+        
 
         [HttpPost]
         public ActionResult Index(string start, string tag, string rule)
@@ -49,18 +46,15 @@ namespace WebApp.Controllers
             }
             if (Session[streamKey] != null)
                 inputStream = (Stream)Session[streamKey];
-            return View(BuildVMM());
+            var viewModel = LoadExpensesViewModel.BuildLoadExpensesVM(inputStream, path, TipoCsv());
+            Session[vm] = viewModel.Reports;
+            return View(viewModel);
         }
 
-        public class Some
-        {
-            public int Tag { get; set; }
-            public string Id { get; set; }
-            public int Account { get; set; }
-        }
+  
 
         [HttpPost]
-        public ActionResult SaveEntries(List<Some> model)
+        public ActionResult SaveEntries(List<SaveEntriesViewModel> model)
         {
             var selected = model.Where(x => x.Tag != 0);
             var reports = (List<SharedTypes.ReportVm>)Session[vm];
@@ -100,50 +94,17 @@ namespace WebApp.Controllers
         {
             return View();
         }
-        
-        private HomeVM BuildVMM()
-        {
-            var tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
-            var cathegories = new List<ToshlTypes.Category>(ToshClient.Entities.getCategories());
-            var categoryTags = tags.GroupBy(x => x.category).ToDictionary(x => cathegories.First(y => y.id == x.Key),x => x.ToList());
 
-            var Accounts = new List<ToshlTypes.Account>(ToshClient.Entities.getAccounts());
-            var reports = MovimentiModelBuilder.Movimenti(path, inputStream, TipoCsv());
-            Session[vm] = reports;
-            var homeVM = new HomeVM
-            {
-                Reports = reports.OrderBy(x => x.Date).ToList(),
-                IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream, TipoCsv()),
-                Tags =
-                    tags.Where(x => !x.deleted)
-                        .Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id })
-                        .ToList(),
-                Rules = new List<SelectListItem>()
-                {
-                    new SelectListItem() {Text = "Ignore", Value = ((int) SharedTypes.RuleType.Ignore).ToString()},
-                    new SelectListItem() {Text = "Tag", Value = ((int) SharedTypes.RuleType.Tagged).ToString()}
-                },
-                Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList(),
-                CategoryTags = categoryTags
-            };
-
-            return homeVM;
-
-        }
         private Types.CsvType TipoCsv()
         {
             bool result;
-            if(bool.TryParse(Session[isContoCorrenteKey] as string, out result))
+            if (bool.TryParse(Session[isContoCorrenteKey] as string, out result))
             {
                 return result ? Types.CsvType.ContoCorrente : Types.CsvType.CartaCredito;
             }
             return Types.CsvType.ContoCorrente;
         }
+
     }
 
-    public class LoadVM
-    {
-        public IEnumerable<ToshlTypes.Entry> error;
-        public IEnumerable<ToshlTypes.Entry> saved;
-    }
 }
