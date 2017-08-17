@@ -15,8 +15,7 @@
             var entries = string.Join(",", x.Value.Entries);
             var result = "\n{tag:\"" + x.Key + "\"," +
                          "\nrow: {" +
-                         "\n\tentries:[" + entries + "]," +
-                         "\n\tmean:" + x.Value.Mean + "}}";
+                         "\n\tentries:[" + entries + "]}}";
             return result;
         });
 
@@ -37,6 +36,7 @@
             <!-- /ko -->
             <th>Mean</th>
             <th>Tot</th>
+            <th>ExT</th>
         </tr>
     </thead>
     <tbody>
@@ -45,11 +45,12 @@
             <td data-bind="text: tag"></td>
             <!-- ko foreach: entries-->
             <td>
-                <input type="number" data-bind="value: value" style="width: 50px" />
+                <input type="number" data-bind="value: value, attr: { title: month }" style="width: 50px" />
             </td>
             <!-- /ko -->
             <td data-bind="text: meanCurr" class="number"></td>
-            <td data-bind="text: totalCurr" class="number"></td>
+            <td data-bind="text: totalCurr()" class="number"></td>
+            <td data-bind="text: toCurrency(expectedTotal())" class="number"></td>
         </tr>
         <!-- /ko -->
 
@@ -60,15 +61,18 @@
             <td colspan="13">Total Income</td>
             <td data-bind="text:totalMeanIncomeCurr" class="number"></td>
             <td data-bind="text:totalIncomeCurr" class="number"></td>
+            <td data-bind="text:totalExpectedIncomeCurr" class="number"></td>
         </tr>
         <tr data-bind="css: profitStatus">
             <td colspan="13">Total Expence</td>
             <td data-bind="text:totalMeanExpenceCurr" class="number"></td>
             <td data-bind="text:totalExpenceCurr" class="number"></td>
+            <td data-bind="text:totalExpectedExpenceCurr" class="number"></td>
         </tr>
         <tr data-bind="css: profitStatus">
             <td colspan="14">Remaining</td>
             <td data-bind="text:remainingCurr" class="number"></td>
+            <td></td>
         </tr>
     </tfoot>
 </table>

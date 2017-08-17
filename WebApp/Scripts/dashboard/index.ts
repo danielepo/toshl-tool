@@ -11,117 +11,154 @@ interface KnockoutBindingHandlers {
     custValue: KnockoutBindingHandler;
 }
 
-var data1 = [];
-var area1 = [];
-
+var months: string[] = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+    "Oct", "Nov", "Dic"
+];
 
 interface IViewModelRow {
     entries: Array<number>;
-    mean: number;
 }
 interface ITagValues {
     tag: string;
     row: IViewModelRow;
 }
-interface IEntry{
-    value: number
+interface IEntry {
+    value: KnockoutObservable<string>;
+    month: string;
 }
-class Entry implements IEntry{
-    value: number;
-    constructor(v: number) {
-        this.value = v;
+class Entry implements IEntry {
+    value: KnockoutObservable<string>;
+    month: string;
+    getValue = (): number => parseFloat(this.value());
+    constructor(v: number, month: number) {
+        this.value = ko.observable(v + "");
+        this.month = months[month];
     }
+
 }
 interface IKnockoutViewModelRow {
     //entries: KnockoutObservableArray<KnockoutObservable<number>>;
     //entries: KnockoutObservableArray<number>;
-    entries: Array<KnockoutObservable<IEntry>>;
+    entries: Array<IEntry>;
     tag: string;
-    mean: number;
-    total: number;
-    meanCurr: string;
-    totalCurr: string;
+    mean: KnockoutObservable<number>;
+    total: KnockoutObservable<number>;
+    meanCurr: KnockoutObservable<string>;
+    totalCurr: KnockoutObservable<string>;
     entryType: string;
+    expectedTotal: KnockoutObservable<number>;
 }
 var getEntry = (tagValues: ITagValues): IKnockoutViewModelRow => {
 
     var entryList = tagValues.row;
-    var total = entryList.entries.reduce((prev, curr) => (prev + curr), 0);
+    var observableEntries = entryList.entries.map((x, i) => new Entry(x, i));
+    var total = ko.pureComputed(() => observableEntries.reduce(function (prev, curr) {
+        return (prev + curr.getValue());
+    }, 0));
+    var mean = ko.pureComputed(() => {
+        var sum = 0;
+        var count = 0;
+        var date = new Date();
+        var month = date.getMonth();
+        for (var i = 0; i < observableEntries.length; i++) {
+            var val = parseFloat(observableEntries[i].value());
+            if (val == 0 && i >= month) {
+                continue;
+            }
+            sum += val;
+            count++;
+        }
+        return sum / count;
+    });
+    //    ko.pureComputed(() => {
+    //    var date = new Date();
+    //    var month = date.getMonth();
+    //    var sum = 0;
+    //    for (var i = 0; i < month - 1; i++) {
+    //        sum += parseFloat(observableEntries[i].value());
+    //    }
+    //    return sum / month;
+    //});
     return {
-        entries: entryList.entries.map(x => ko.observable(new Entry(x))),
-        //entries: ko.observableArray(entryList.entries),
-        //entries: ko.observableArray(entryList.entries.map(x => ko.observable(x))),
+        entries: observableEntries,
         tag: tagValues.tag,
-        mean: tagValues.row.mean,
+        mean: mean,
         total: total,
-        meanCurr: toCurrency(entryList.mean),
-        totalCurr: toCurrency(total),
-        entryType: total > 0 ? "success" : "danger"
+        meanCurr: ko.pureComputed(() => toCurrency(mean())),
+        expectedTotal: ko.pureComputed(() => mean() * 12),
+        totalCurr: ko.pureComputed(() => toCurrency(total())),
+        entryType: total() > 0 ? "success" : "danger"
     };
 }
 
-var VM = function (entries: Array<ITagValues>) {
+interface IDashboardVm {
+    labels: string[];
+    entries: IKnockoutViewModelRow[];
+    totalIncomeCurr: KnockoutComputed<string>;
+    totalExpenceCurr: KnockoutComputed<string>;
+    totalMeanIncomeCurr: KnockoutComputed<string>;
+    totalMeanExpenceCurr: KnockoutComputed<string>;
+    remainingCurr: KnockoutComputed<string>;
+    profitStatus: KnockoutComputed<string>;
+}
+class VM implements IDashboardVm {
 
+    labels: string[];
+    entries: IKnockoutViewModelRow[];
+    constructor(entries: Array<ITagValues>) {
+        this.labels = months;
+        this.entries = entries.map(elm => getEntry(elm));
+    }
 
-    var self = this;
+    private totalIncome() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.total() > 0 ? prev + curr.total() : prev, 0);
+    }
 
+    private totalExpence() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.total() <= 0 ? prev + curr.total() : prev, 0);
+    }
 
-    self.labels = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
-        "Oct", "Nov", "Dic"
-    ];
-    self.entries = entries.map(elm => getEntry(elm));
+    private totalMeanIncome() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.mean() > 0 ? prev + curr.mean() : prev, 0);
+    }
 
-
-    var totalIncome = ko.computed(() => this.entries.reduce((prev, curr) => {
-        if (curr.total > 0)
-            return prev + curr.total;
-        else
-            return prev;
-    },
-        0));
-
-
-    var totalExpence = ko.computed(() => this.entries.reduce((prev, curr) => {
-        if (curr.total <= 0)
-            return prev + curr.total;
-        else
-            return prev;
-    },
-        0));
-
-    var totalMeanIncome = ko.computed(() => this.entries.reduce((prev, curr) => {
-        if (curr.mean > 0)
-            return prev + curr.mean;
-        else
-            return prev;
-    },
-        0));
-
-
-   var totalMeanExpence = ko.computed(() => this.entries.reduce((prev, curr) => {
-        if (curr.mean <= 0)
-            return prev + curr.mean;
-        else
-            return prev;
-    },
-        0));
-    var remaining = ko.computed(() => (totalIncome() + totalExpence()));
-
-    self.totalIncomeCurr = ko.computed(() => toCurrency(totalIncome()));
-    self.totalExpenceCurr = ko.computed(() => toCurrency(totalExpence()));
-    self.totalMeanIncomeCurr = ko.computed(() => toCurrency(totalMeanIncome()));
-   self.totalMeanExpenceCurr = ko.computed(() => toCurrency(totalMeanExpence()));
-
-
-    self.remainingCurr = ko.computed(() => toCurrency(remaining()));
-    self.profitStatus = ko.computed(() => (remaining() > 0 ? "success" : "danger"));
-
-
-    self.Data = {
-        labels: self.labels,
-        datasets: self.dataset1
-    };
-
-
-} 
+    private totalExpectedIncome() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.expectedTotal() > 0 ? prev + curr.expectedTotal() : prev, 0);
+    }
+    private totalMeanExpence() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.mean() <= 0 ? prev + curr.mean() : prev, 0);
+    }
+    private totalExpectedExpence() {
+        if (this.entries == null) {
+            return 0;
+        }
+        return this.entries.reduce((prev, curr) => curr.expectedTotal() <= 0 ? prev + curr.expectedTotal() : prev, 0);
+    }
+    private remaining() {
+        return this.totalIncome() + this.totalExpence();
+    }
+    totalIncomeCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalIncome()));
+    totalExpenceCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalExpence()));
+    totalMeanIncomeCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalMeanIncome()));
+    totalExpectedIncomeCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalExpectedIncome()));
+    totalMeanExpenceCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalMeanExpence()));
+    totalExpectedExpenceCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.totalExpectedExpence()));
+    remainingCurr: KnockoutComputed<string> = ko.pureComputed(() => toCurrency(this.remaining()));
+    profitStatus: KnockoutComputed<string> = ko.pureComputed(() => (this.remaining() > 0 ? "success" : "danger"));
+}
