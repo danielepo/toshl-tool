@@ -26,7 +26,20 @@
         <h3>Add Rule</h3>
         <div class="form-group">
             @Html.Label("tag", "Tag")
-            @Html.DropDownList("tag", Model.Tags, new { @class = "form-control" })
+
+            <select name="tag" class="form-control">
+                <option value="0">-- Select --</option>
+
+                @foreach (var cat in Model.CategoryTags)
+                {
+                    <optgroup label="@cat.Key.name">
+                        @foreach (var mTag in cat.Value)
+                        {
+                                <option value="@mTag.id">@mTag.name</option>
+                        }
+                    </optgroup>
+                }
+            </select>
         </div>
         <div class="form-group">
             @Html.Label("start", "Start String")
@@ -55,26 +68,33 @@
                 {
                     var trClass = m.Type.IsExpence ? "danger" : "success";
                     var tag = Model.Tags.FirstOrDefault(x => x.Value == m.Tag.ToString());
-
+                    <script>vm.selectedCategory[@id] = ko.observable(0);</script>
                     <tr class="@trClass">
 
                         <td>
                             <input name="model[@id].Id" type="hidden" value="@m.Hash" class="form-control" />
+                            
                             <select name="model[@id].Tag" class="form-control">
-                                <option value="0">-- Select --</option>
-                                @foreach (var mTag in Model.Tags)
+                                    <option value="0">-- Select --</option>
+
+                                @foreach (var cat in Model.CategoryTags.Where(x => m.Type.IsExpence && x.Key.type == "expense" || !m.Type.IsExpence && x.Key.type == "income"))
                                 {
-                                    if (tag != null && tag.Value == mTag.Value)
-                                    {
-                                        <option value="@mTag.Value" selected="selected">@mTag.Text</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@mTag.Value">@mTag.Text</option>
-                                    }
+                                    <optgroup label="@cat.Key.name">
+                                        @foreach (var mTag in cat.Value)
+                                        {
+                                            if (tag != null && tag.Value == mTag.id)
+                                            {
+                                                <option value="@mTag.id" selected="selected">@mTag.name</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@mTag.id">@mTag.name</option>
+                                            }
+                                        }
+                                    </optgroup>
                                 }
-                            </select>
-                        </td>
+                                </select>
+</td>
                         <td>
                             <select name="model[@id].Account" class="form-control">
                                 <option value="0">-- Select --</option>

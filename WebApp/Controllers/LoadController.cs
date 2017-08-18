@@ -13,6 +13,7 @@ namespace WebApp.Controllers
         public List<SharedTypes.ReportVm> Reports;
         public List<SelectListItem> Rules;
         public List<SelectListItem> Tags;
+        public Dictionary<ToshlTypes.Category, List<ToshlTypes.Tag>> CategoryTags { get; internal set; }
     }
     [Authorize()]
     [RequireHttps]
@@ -102,7 +103,10 @@ namespace WebApp.Controllers
         
         private HomeVM BuildVMM()
         {
-            var Tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
+            var tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
+            var cathegories = new List<ToshlTypes.Category>(ToshClient.Entities.getCategories());
+            var categoryTags = tags.GroupBy(x => x.category).ToDictionary(x => cathegories.First(y => y.id == x.Key),x => x.ToList());
+
             var Accounts = new List<ToshlTypes.Account>(ToshClient.Entities.getAccounts());
             var reports = MovimentiModelBuilder.Movimenti(path, inputStream, TipoCsv());
             Session[vm] = reports;
@@ -111,7 +115,7 @@ namespace WebApp.Controllers
                 Reports = reports.OrderBy(x => x.Date).ToList(),
                 IgnoredReports = MovimentiModelBuilder.Ignorati(path, inputStream, TipoCsv()),
                 Tags =
-                    Tags.Where(x => !x.deleted)
+                    tags.Where(x => !x.deleted)
                         .Select(tag => new SelectListItem() { Text = tag.name, Value = tag.id })
                         .ToList(),
                 Rules = new List<SelectListItem>()
@@ -119,7 +123,8 @@ namespace WebApp.Controllers
                     new SelectListItem() {Text = "Ignore", Value = ((int) SharedTypes.RuleType.Ignore).ToString()},
                     new SelectListItem() {Text = "Tag", Value = ((int) SharedTypes.RuleType.Tagged).ToString()}
                 },
-                Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList()
+                Accounts = Accounts.Select(x => new SelectListItem() { Text = x.name, Value = x.id.ToString() }).ToList(),
+                CategoryTags = categoryTags
             };
 
             return homeVM;
