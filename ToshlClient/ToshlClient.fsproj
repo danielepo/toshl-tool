@@ -60,6 +60,9 @@
     <Compile Include="ToshlTypes.fs" />
     <Compile Include="Request.fs" />
     <Compile Include="RestClient.fs" />
+    <None Include="Models\AccountViewModels.cs" />
+    <None Include="Models\IdentityModels.cs" />
+    <None Include="Models\ManageViewModels.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />

@@ -2,7 +2,7 @@
     ViewBag.Title = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-@model WebApp.Controllers.HomeVM
+@model WebApp.ViewModels.LoadExpensesViewModel
 
 <script type="text/javascript">
     $(document).ready(function () {
@@ -35,7 +35,7 @@
                     <optgroup label="@cat.Key.name">
                         @foreach (var mTag in cat.Value)
                         {
-                                <option value="@mTag.id">@mTag.name</option>
+                            <option value="@mTag.id">@mTag.name</option>
                         }
                     </optgroup>
                 }
@@ -73,9 +73,9 @@
 
                         <td>
                             <input name="model[@id].Id" type="hidden" value="@m.Hash" class="form-control" />
-                            
+
                             <select name="model[@id].Tag" class="form-control">
-                                    <option value="0">-- Select --</option>
+                                <option value="0">-- Select --</option>
 
                                 @foreach (var cat in Model.CategoryTags.Where(x => m.Type.IsExpence && x.Key.type == "expense" || !m.Type.IsExpence && x.Key.type == "income"))
                                 {
@@ -93,8 +93,8 @@
                                         }
                                     </optgroup>
                                 }
-                                </select>
-</td>
+                            </select>
+                        </td>
                         <td>
                             <select name="model[@id].Account" class="form-control">
                                 <option value="0">-- Select --</option>
