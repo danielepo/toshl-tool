@@ -14,6 +14,7 @@
         {
             var entries = string.Join(",", x.Value.Entries);
             var result = "\n{tag:\"" + x.Key + "\"," +
+                            "\ncategory:\"" + x.Value.Category + "\"," +
                          "\nrow: {" +
                          "\n\tentries:[" + entries + "]}}";
             return result;
@@ -30,6 +31,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
+            <th>Cat</th>
             <th>Tag</th>
             <!-- ko foreach: labels-->
             <th data-bind="text: $data"></th>
@@ -41,7 +43,8 @@
     </thead>
     <tbody>
         <!-- ko foreach: entries-->
-        <tr data-bind="css: entryType">
+        <tr data-bind="css: getEntryType($data,$index,$parent)">
+            <td data-bind="text: category"></td>
             <td data-bind="text: tag"></td>
             <!-- ko foreach: entries-->
             <td>

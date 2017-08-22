@@ -19,47 +19,49 @@ var Entry = (function () {
     }
     return Entry;
 }());
-var getEntry = function (tagValues) {
-    var entryList = tagValues.row;
-    var observableEntries = entryList.entries.map(function (x, i) { return new Entry(x, i); });
-    var total = ko.pureComputed(function () { return observableEntries.reduce(function (prev, curr) {
-        return (prev + curr.getValue());
-    }, 0); });
-    var mean = ko.pureComputed(function () {
-        var sum = 0;
-        var count = 0;
-        var date = new Date();
-        var month = date.getMonth();
-        for (var i = 0; i < observableEntries.length; i++) {
-            var val = parseFloat(observableEntries[i].value());
-            if (val == 0 && i >= month) {
-                continue;
+var KnockoutEntry = (function () {
+    function KnockoutEntry(tagValues) {
+        var entryList = tagValues.row;
+        var observableEntries = entryList.entries.map(function (x, i) { return new Entry(x, i); });
+        var total = ko.pureComputed(function () { return observableEntries.reduce(function (prev, curr) {
+            return (prev + curr.getValue());
+        }, 0); });
+        var mean = ko.pureComputed(function () {
+            var sum = 0;
+            var count = 0;
+            var date = new Date();
+            var month = date.getMonth();
+            for (var i = 0; i < observableEntries.length; i++) {
+                var val = parseFloat(observableEntries[i].value());
+                if (val == 0 && i >= month) {
+                    continue;
+                }
+                sum += val;
+                count++;
             }
-            sum += val;
-            count++;
-        }
-        return sum / count;
-    });
-    //    ko.pureComputed(() => {
-    //    var date = new Date();
-    //    var month = date.getMonth();
-    //    var sum = 0;
-    //    for (var i = 0; i < month - 1; i++) {
-    //        sum += parseFloat(observableEntries[i].value());
-    //    }
-    //    return sum / month;
-    //});
-    return {
-        entries: observableEntries,
-        tag: tagValues.tag,
-        mean: mean,
-        total: total,
-        meanCurr: ko.pureComputed(function () { return toCurrency(mean()); }),
-        expectedTotal: ko.pureComputed(function () { return mean() * 12; }),
-        totalCurr: ko.pureComputed(function () { return toCurrency(total()); }),
-        entryType: total() > 0 ? "success" : "danger"
+            return sum / count;
+        });
+        this.entries = observableEntries;
+        this.tag = tagValues.tag;
+        this.category = tagValues.category;
+        this.mean = mean;
+        this.total = total;
+        this.meanCurr = ko.pureComputed(function () { return toCurrency(mean()); });
+        this.expectedTotal = ko.pureComputed(function () { return mean() * 12; });
+        this.totalCurr = ko.pureComputed(function () { return toCurrency(total()); });
+        this.entryType = total() > 0 ? "success" : "danger";
+    }
+    KnockoutEntry.prototype.getEntryType = function (row1, id, vm) {
+        debugger;
+        if (id() == 0)
+            return row1.total() > 0 ? "success" : "danger";
+        if (row1.category == vm.entries[id() - 1].category)
+            return row1.total() > 0 ? "success" : "danger";
+        else
+            return row1.total() > 0 ? "success separator" : "danger separator";
     };
-};
+    return KnockoutEntry;
+}());
 var VM = (function () {
     function VM(entries) {
         var _this = this;
@@ -72,7 +74,7 @@ var VM = (function () {
         this.remainingCurr = ko.pureComputed(function () { return toCurrency(_this.remaining()); });
         this.profitStatus = ko.pureComputed(function () { return (_this.remaining() > 0 ? "success" : "danger"); });
         this.labels = months;
-        this.entries = entries.map(function (elm) { return getEntry(elm); });
+        this.entries = entries.map(function (elm) { return new KnockoutEntry(elm); });
     }
     VM.prototype.totalIncome = function () {
         if (this.entries == null) {

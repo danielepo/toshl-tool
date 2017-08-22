@@ -28,12 +28,13 @@ namespace WebApp.Controllers
                 return View((ViewModelTable)Session["vm"]);
             }
             var entriesByTag = ToshClient.GetEntriesByTag(startDate, startDate.AddYears(1)).OrderBy(o => o.Key.name);
+            
             //var income = entriesByTag.Select(tag => tag.Value.Where(x => x.amount > 0).Select(x => x.amount).Sum()).Sum();
             var entries = ComputeEntries(entriesByTag);
+          
             var vm = new ViewModelTable
             {
                 TagValues = entries
-
             };
             Session["vm"] = vm;
             return View(vm);
@@ -41,6 +42,9 @@ namespace WebApp.Controllers
 
         private static Dictionary<string, ViewModelRow> ComputeEntries(IOrderedEnumerable<ToshlTypes.TaggedEntry> entriesByTag)
         {
+            var tags = new List<ToshlTypes.Tag>(ToshClient.Entities.getTags());
+            var cathegories = new List<ToshlTypes.Category>(ToshClient.Entities.getCategories());
+
             var entries = new Dictionary<string, ViewModelRow>();
             foreach (var entry in entriesByTag)
             {
@@ -60,13 +64,22 @@ namespace WebApp.Controllers
                 {
                     array[monthValue.Key] = monthValue.Value;
                 }
+                var cat = cathegories.First(x => x.id == entry.Key.category);
                 var viewModelRow = new ViewModelRow
                 {
-                    Entries = array
+                    Entries = array,
+                    Category = cat.name,
+                    CategoryType = cat.type,
+                    Total = array.Sum()
                 };
                 entries.Add(entry.Key.name, viewModelRow);
             }
-            entries = entries.OrderBy(x => x.Value.Total).ToDictionary(x => x.Key, x => x.Value);
+            entries = 
+                entries
+                .OrderBy(x => x.Value.Total)
+                .OrderBy(x => x.Value.Category)
+                .OrderBy(x => x.Value.CategoryType)
+                .ToDictionary(x => x.Key, x => x.Value);
             return entries;
         }
     }

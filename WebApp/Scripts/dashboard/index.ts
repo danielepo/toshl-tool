@@ -21,6 +21,7 @@ interface IViewModelRow {
 }
 interface ITagValues {
     tag: string;
+    category: string;
     row: IViewModelRow;
 }
 interface IEntry {
@@ -42,54 +43,69 @@ interface IKnockoutViewModelRow {
     //entries: KnockoutObservableArray<number>;
     entries: Array<IEntry>;
     tag: string;
+    category: string;
     mean: KnockoutObservable<number>;
     total: KnockoutObservable<number>;
     meanCurr: KnockoutObservable<string>;
     totalCurr: KnockoutObservable<string>;
     entryType: string;
     expectedTotal: KnockoutObservable<number>;
+    getEntryType(row1: IKnockoutViewModelRow, id: KnockoutObservable<number>, vm: IDashboardVm) : string;
 }
-var getEntry = (tagValues: ITagValues): IKnockoutViewModelRow => {
+class KnockoutEntry implements IKnockoutViewModelRow {
+    entries: Array<IEntry>;
+    tag: string;
+    category: string;
+    mean: KnockoutObservable<number>;
+    total: KnockoutObservable<number>;
+    meanCurr: KnockoutObservable<string>;
+    totalCurr: KnockoutObservable<string>;
+    entryType: string;
+    expectedTotal: KnockoutObservable<number>;
+    constructor(tagValues: ITagValues) {
 
-    var entryList = tagValues.row;
-    var observableEntries = entryList.entries.map((x, i) => new Entry(x, i));
-    var total = ko.pureComputed(() => observableEntries.reduce(function (prev, curr) {
-        return (prev + curr.getValue());
-    }, 0));
-    var mean = ko.pureComputed(() => {
-        var sum = 0;
-        var count = 0;
-        var date = new Date();
-        var month = date.getMonth();
-        for (var i = 0; i < observableEntries.length; i++) {
-            var val = parseFloat(observableEntries[i].value());
-            if (val == 0 && i >= month) {
-                continue;
+        var entryList = tagValues.row;
+        var observableEntries = entryList.entries.map((x, i) => new Entry(x, i));
+        var total = ko.pureComputed(() => observableEntries.reduce(function (prev, curr) {
+            return (prev + curr.getValue());
+        }, 0));
+        var mean = ko.pureComputed(() => {
+            var sum = 0;
+            var count = 0;
+            var date = new Date();
+            var month = date.getMonth();
+            for (var i = 0; i < observableEntries.length; i++) {
+                var val = parseFloat(observableEntries[i].value());
+                if (val == 0 && i >= month) {
+                    continue;
+                }
+                sum += val;
+                count++;
             }
-            sum += val;
-            count++;
-        }
-        return sum / count;
-    });
-    //    ko.pureComputed(() => {
-    //    var date = new Date();
-    //    var month = date.getMonth();
-    //    var sum = 0;
-    //    for (var i = 0; i < month - 1; i++) {
-    //        sum += parseFloat(observableEntries[i].value());
-    //    }
-    //    return sum / month;
-    //});
-    return {
-        entries: observableEntries,
-        tag: tagValues.tag,
-        mean: mean,
-        total: total,
-        meanCurr: ko.pureComputed(() => toCurrency(mean())),
-        expectedTotal: ko.pureComputed(() => mean() * 12),
-        totalCurr: ko.pureComputed(() => toCurrency(total())),
-        entryType: total() > 0 ? "success" : "danger"
-    };
+            return sum / count;
+        });
+        this.entries = observableEntries;
+        this.tag = tagValues.tag;
+        this.category = tagValues.category;
+        this.mean = mean;
+        this.total = total;
+        this.meanCurr = ko.pureComputed(() => toCurrency(mean()));
+        this.expectedTotal = ko.pureComputed(() => mean() * 12);
+        this.totalCurr = ko.pureComputed(() => toCurrency(total()));
+        this.entryType = total() > 0 ? "success" : "danger";
+    }
+    getEntryType(row1: IKnockoutViewModelRow, id: KnockoutObservable<number>, vm: IDashboardVm) {
+        debugger;
+        if (id() == 0)
+            return row1.total() > 0 ? "success" : "danger";
+
+        if (row1.category == vm.entries[id() - 1].category)
+            return row1.total() > 0 ? "success" : "danger";
+        else
+            return row1.total() > 0 ? "success separator" : "danger separator";
+
+    }
+
 }
 
 interface IDashboardVm {
@@ -108,7 +124,7 @@ class VM implements IDashboardVm {
     entries: IKnockoutViewModelRow[];
     constructor(entries: Array<ITagValues>) {
         this.labels = months;
-        this.entries = entries.map(elm => getEntry(elm));
+        this.entries = entries.map(elm => new KnockoutEntry(elm));
     }
 
     private totalIncome() {

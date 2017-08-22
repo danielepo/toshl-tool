@@ -29,3 +29,7 @@ textarea {
 tfoot{
     border-top:solid thick;
 }
+
+.separator {
+    border-top: 2px solid #a9a9a9;
+}
